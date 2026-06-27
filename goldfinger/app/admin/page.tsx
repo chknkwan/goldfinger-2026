@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/lib/useAuth'
 import LoginScreen from '@/components/LoginScreen'
 import { supabase } from '@/lib/supabase'
@@ -29,6 +29,10 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false)
   const [loadingGame, setLoadingGame] = useState<number | null>(null)
   const [totalGames, setTotalGames] = useState(4)
+  const [gameHistory, setGameHistory] = useState<{ sub_table: string; score1: number; score2: number; updated_at: string; game: number }[]>([])
+  const [showHistory, setShowHistory] = useState(false)
+  const [scoringLocked, setScoringLocked] = useState(false)
+  const prevProgressRef = useRef<number>(0)
 
   // Players management
   const [showPlayers, setShowPlayers] = useState(false)
@@ -47,7 +51,7 @@ export default function AdminPage() {
   const loadData = useCallback(async () => {
     const [{ data: p }, { data: g }, { data: ta }, { data: pf }] = await Promise.all([
       supabase.from('players').select('*').eq('level', level).order('number'),
-      supabase.from('games').select('*').eq('level', level),
+      supabase.from('games').select('*').eq('level', level).order('updated_at', { ascending: false }),
       supabase.from('table_assignments').select('*, player1:player1_id(*), player2:player2_id(*)').eq('level', level).order('game').order('table_num').order('sub_table'),
       supabase.from('playoffs').select('*, player1:player1_id(*), player2:player2_id(*)').eq('level', level),
     ])
@@ -68,9 +72,32 @@ export default function AdminPage() {
     setTables(byGame)
     setLatestGame(maxGame)
     setPlayoffs((pf || []) as typeof playoffs)
+
+    // ข้อ 7: ประวัติการกรอก 10 รายการล่าสุด
+    type GR = GameRow & { updated_at?: string }
+    const history = (g as GR[] || [])
+      .filter(r => r.score1 !== null && r.score2 !== null)
+      .slice(0, 10)
+      .map(r => ({
+        sub_table: r.sub_table, score1: r.score1 as number, score2: r.score2 as number,
+        updated_at: r.updated_at || '', game: r.game
+      }))
+    setGameHistory(history)
   }, [level])
 
   useEffect(() => { if (authed) loadData() }, [authed, loadData])
+
+  // ข้อ 2: แจ้งเตือนเมื่อกรอกครบ
+  useEffect(() => {
+    if (!latestGame) return
+    const { scored, total } = getGameProgress(latestGame)
+    if (total > 0 && scored === total && prevProgressRef.current < total) {
+      setStatus({ msg: `🎉 กรอกครบแล้วทุกโต๊ะ! (เกม ${latestGame}) พร้อมจัดโต๊ะเกมต่อไป`, ok: true })
+      try { new Audio('data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAA==').play() } catch { /* ignore */ }
+    }
+    prevProgressRef.current = scored
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gameRows, latestGame])
 
   const loadAllPlayers = async () => {
     const { data } = await supabase.from('players').select('*').order('level').order('number')
@@ -108,6 +135,12 @@ export default function AdminPage() {
 
   async function resetSystem() {
     if (!confirm('⚠️ ยืนยันรีเซ็ตระบบทั้งหมด?\nข้อมูลผลการแข่งขัน โต๊ะ และเพลย์ออฟจะถูกลบหมด\n(รายชื่อนักเรียนยังอยู่)')) return
+    // ข้อ 6: backup อัตโนมัติก่อนรีเซ็ต
+    const a = document.createElement('a')
+    a.href = '/api/export?level=all'
+    a.download = `goldfinger-backup-${new Date().toISOString().slice(0, 10)}.xlsx`
+    a.click()
+    await new Promise(r => setTimeout(r, 500))
     await Promise.all([
       supabase.from('games').delete().neq('id', 0),
       supabase.from('table_assignments').delete().neq('id', 0),
@@ -332,7 +365,10 @@ export default function AdminPage() {
                     </div>
                   )
                 })()}
-                <p className="text-xs font-bold text-amber-700 mb-2">โต๊ะเกมที่ {latestGame}:</p>
+                <div className="flex justify-between items-center mb-2">
+                  <p className="text-xs font-bold text-amber-700">โต๊ะเกมที่ {latestGame}:</p>
+                  <button onClick={() => window.print()} className="px-3 py-1 rounded-lg border border-amber-400 text-amber-700 text-xs font-bold hover:bg-amber-50">🖨️ พิมพ์ใบปะหน้า</button>
+                </div>
                 {Object.entries(byTable).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
                   <div key={tn} className="bg-amber-50 rounded-xl p-3 border border-yellow-200 text-sm">
                     <span className="font-black text-amber-800 mr-2">โต๊ะ {tn}</span>
@@ -420,6 +456,52 @@ export default function AdminPage() {
             <a href={`/api/export?level=${encodeURIComponent(level)}`} className="flex-1 py-3 rounded-xl text-center font-bold text-sm bg-green-700 text-white hover:bg-green-800 transition">📊 Export {level} (.xlsx)</a>
             <a href="/api/export?level=all" className="flex-1 py-3 rounded-xl text-center font-bold text-sm border-2 border-green-600 text-green-800 hover:bg-green-50 transition">📊 Export ทุกระดับ</a>
           </div>
+        </div>
+
+        {/* ข้อ 8: Lock การกรอกคะแนน */}
+        <div className="bg-white rounded-2xl p-5 border border-yellow-200 shadow">
+          <div className="flex justify-between items-center">
+            <div>
+              <p className="font-black text-amber-800">🔒 ล็อกการกรอกคะแนน</p>
+              <p className="text-xs text-amber-600 mt-1">{scoringLocked ? 'ล็อกอยู่ — กรรมการกรอกคะแนนไม่ได้' : 'ปลดล็อก — กรรมการกรอกได้ตามปกติ'}</p>
+            </div>
+            <button onClick={async () => {
+                const next = !scoringLocked
+                setScoringLocked(next)
+                await supabase.from('broadcast').insert({ type: 'lock', level: null, payload: { locked: next } })
+              }}
+              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition ${scoringLocked ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'}`}>
+              {scoringLocked ? '🔒 ล็อกอยู่' : '🔓 ปลดล็อก'}
+            </button>
+          </div>
+        </div>
+
+        {/* ข้อ 7: ประวัติการกรอก */}
+        <div className="bg-white rounded-2xl border border-yellow-200 shadow overflow-hidden">
+          <button onClick={() => setShowHistory(v => !v)} className="w-full p-5 flex justify-between items-center font-black text-amber-800 hover:bg-amber-50 transition">
+            <span>📋 ประวัติการกรอกคะแนนล่าสุด ({level})</span>
+            <span>{showHistory ? '▲' : '▼'}</span>
+          </button>
+          {showHistory && (
+            <div className="border-t border-yellow-100">
+              {gameHistory.length === 0
+                ? <p className="text-center text-amber-300 py-4 text-sm">ยังไม่มีประวัติ</p>
+                : <table className="w-full text-xs">
+                    <thead><tr className="bg-amber-50 text-amber-700"><th className="p-2 text-left">เกม</th><th className="p-2 text-left">โต๊ะ</th><th className="p-2">คะแนน</th><th className="p-2 text-left">เวลา</th></tr></thead>
+                    <tbody>
+                      {gameHistory.map((h, i) => (
+                        <tr key={i} className="border-t border-yellow-50">
+                          <td className="p-2 font-bold text-amber-700">เกม {h.game}</td>
+                          <td className="p-2 font-bold">{h.sub_table}</td>
+                          <td className="p-2 text-center font-black">{h.score1} – {h.score2}</td>
+                          <td className="p-2 text-gray-400">{h.updated_at ? new Date(h.updated_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+              }
+            </div>
+          )}
         </div>
 
         {/* Reset */}
@@ -517,8 +599,38 @@ export default function AdminPage() {
         @media print {
           body > * { display: none !important; }
           #awards-section { display: block !important; }
+          #print-tables { display: block !important; }
         }
+        #print-tables { display: none; }
       `}</style>
+
+      {/* ข้อ 3: ใบปะหน้าโต๊ะ (ซ่อนไว้ แสดงเฉพาะตอนพิมพ์) */}
+      <div id="print-tables">
+        <div style={{ textAlign: 'center', marginBottom: 16 }}>
+          <h2 style={{ fontSize: 20, fontWeight: 900 }}>🎮 การจับคู่เกมที่ {latestGame} — {level}</h2>
+          <p style={{ fontSize: 13 }}>Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</p>
+        </div>
+        {latestGame > 0 && tables[latestGame] && (() => {
+          type TARow = { sub_table: string; player1: Player; player2: Player | null; is_bye: boolean; table_num: number }
+          const byTable: Record<number, TARow[]> = {}
+          tables[latestGame].forEach(r => {
+            const tn = (r as unknown as TARow).table_num || 0
+            if (!byTable[tn]) byTable[tn] = []
+            byTable[tn].push(r as unknown as TARow)
+          })
+          return Object.entries(byTable).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
+            <div key={tn} style={{ border: '2px solid #d97706', borderRadius: 12, padding: 16, marginBottom: 16, breakInside: 'avoid' }}>
+              <p style={{ fontWeight: 900, fontSize: 18, marginBottom: 8 }}>โต๊ะ {tn}</p>
+              {rows.map(r => (
+                <p key={r.sub_table} style={{ fontSize: 15, marginBottom: 4 }}>
+                  <strong>{r.sub_table.slice(-1)}:</strong>{' '}
+                  {r.is_bye ? `${r.player1?.name} (${r.player1?.number}) — bye` : `${r.player1?.name} (${r.player1?.number}) VS ${r.player2?.name} (${r.player2?.number})`}
+                </p>
+              ))}
+            </div>
+          ))
+        })()}
+      </div>
     </div>
   )
 }

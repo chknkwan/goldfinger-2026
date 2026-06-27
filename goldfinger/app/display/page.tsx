@@ -23,16 +23,29 @@ export default function DisplayPage() {
   const [resetKey, setResetKey] = useState(0)
   const [realtimeOk, setRealtimeOk] = useState(true)
   const [projector, setProjector] = useState(false)
+  const [dark, setDark] = useState(false)
+  const [autoRotate, setAutoRotate] = useState(false)
   const [clock, setClock] = useState('')
   const realtimeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const views: View[] = ['standings', 'tables', 'playoff', 'awards']
 
-  // ข้อ 7: นาฬิกา real-time
+  // นาฬิกา real-time
   useEffect(() => {
     const tick = () => setClock(new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }))
     tick()
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [])
+
+  // ข้อ 4: auto-rotate ทุก 15 วิ
+  useEffect(() => {
+    if (!autoRotate) return
+    const id = setInterval(() => {
+      setView(v => views[(views.indexOf(v) + 1) % views.length])
+    }, 15000)
+    return () => clearInterval(id)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRotate])
 
   const loadAll = useCallback(async () => {
     const [{ data: p }, { data: g }, { data: ta }, { data: pf }] = await Promise.all([
@@ -108,8 +121,14 @@ export default function DisplayPage() {
     ? { name: 'text-xl', stat: 'text-lg', pts: 'text-2xl', cell: 'p-4', header: 'text-lg' }
     : { name: 'text-sm', stat: 'text-sm', pts: 'text-base', cell: 'p-3', header: 'text-sm' }
 
+  // ข้อ 5: dark mode colors
+  const bg = dark ? 'bg-gray-950' : 'bg-amber-50'
+  const cardBg = dark ? 'bg-gray-900 border-gray-700' : 'bg-white border-yellow-200'
+  const textMain = dark ? 'text-gray-100' : 'text-gray-800'
+  const textMuted = dark ? 'text-gray-400' : 'text-gray-500'
+
   return (
-    <div className="min-h-screen p-4 pb-16">
+    <div className={`min-h-screen p-4 pb-16 transition-colors duration-300 ${bg}`}>
       {/* Header */}
       <div className="max-w-4xl mx-auto rounded-3xl p-5 text-center text-white mb-4 shadow-xl"
         style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
@@ -117,11 +136,20 @@ export default function DisplayPage() {
           {/* ข้อ 7: นาฬิกา */}
           <span className="font-black text-yellow-200 text-lg tabular-nums w-32 text-left">{clock}</span>
           <h1 style={{ fontFamily: "'Nunito',sans-serif" }} className="text-2xl font-black flex-1">🥇 กระดานคะแนน Goldfinger</h1>
-          {/* ข้อ 5: ปุ่มโหมดจอฉาย */}
-          <button onClick={() => setProjector(v => !v)}
-            className={`w-32 text-right text-xs font-bold px-3 py-1.5 rounded-lg transition ${projector ? 'bg-white text-amber-800' : 'bg-white/20 text-yellow-100 hover:bg-white/30'}`}>
-            {projector ? '🔍 ปกติ' : '📽️ จอฉาย'}
-          </button>
+          <div className="flex gap-2 w-32 justify-end">
+            <button onClick={() => setProjector(v => !v)}
+              className={`text-xs font-bold px-2 py-1.5 rounded-lg transition ${projector ? 'bg-white text-amber-800' : 'bg-white/20 text-yellow-100 hover:bg-white/30'}`}>
+              {projector ? '🔍' : '📽️'}
+            </button>
+            <button onClick={() => setDark(v => !v)}
+              className={`text-xs font-bold px-2 py-1.5 rounded-lg transition ${dark ? 'bg-white text-amber-800' : 'bg-white/20 text-yellow-100 hover:bg-white/30'}`}>
+              {dark ? '☀️' : '🌙'}
+            </button>
+            <button onClick={() => setAutoRotate(v => !v)}
+              className={`text-xs font-bold px-2 py-1.5 rounded-lg transition ${autoRotate ? 'bg-white text-amber-800' : 'bg-white/20 text-yellow-100 hover:bg-white/30'}`}>
+              {autoRotate ? '⏸️' : '▶️'}
+            </button>
+          </div>
         </div>
         <span className="inline-block px-4 py-1 bg-green-700 rounded-full text-sm font-bold">Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</span>
       </div>
@@ -136,16 +164,16 @@ export default function DisplayPage() {
 
       <div className="max-w-4xl mx-auto">
         {/* Controls */}
-        <div className="bg-white rounded-2xl p-3 border-2 border-yellow-200 shadow mb-4 flex flex-wrap gap-3 items-center justify-center">
+        <div className={`${cardBg} rounded-2xl p-3 border-2 shadow mb-4 flex flex-wrap gap-3 items-center justify-center`}>
           <select value={level} onChange={e => setLevel(e.target.value as Level)}
-            className="px-4 py-2 border-2 border-amber-400 rounded-xl text-amber-800 font-bold text-sm bg-white">
+            className={`px-4 py-2 border-2 border-amber-400 rounded-xl font-bold text-sm ${dark ? 'bg-gray-800 text-amber-300' : 'bg-white text-amber-800'}`}>
             <option value="มต้น">มัธยมศึกษาตอนต้น</option>
             <option value="มปลาย">มัธยมศึกษาตอนปลาย</option>
           </select>
-          <div className="flex bg-amber-50 rounded-xl p-1">
+          <div className={`flex ${dark ? 'bg-gray-800' : 'bg-amber-50'} rounded-xl p-1`}>
             {[['standings', 'ตารางอันดับ'], ['tables', 'การจับคู่'], ['playoff', 'เพลย์ออฟ'], ['awards', '🏆 รางวัล']].map(([v, label]) => (
-              <button key={v} onClick={() => setView(v as View)}
-                className={`px-3 py-2 rounded-lg font-bold text-xs transition ${view === v ? 'bg-amber-500 text-white shadow' : 'text-amber-700 hover:bg-amber-100'}`}>
+              <button key={v} onClick={() => { setView(v as View); setAutoRotate(false) }}
+                className={`px-3 py-2 rounded-lg font-bold text-xs transition ${view === v ? 'bg-amber-500 text-white shadow' : dark ? 'text-amber-400 hover:bg-gray-700' : 'text-amber-700 hover:bg-amber-100'}`}>
                 {label}
               </button>
             ))}
@@ -162,7 +190,7 @@ export default function DisplayPage() {
 
         {/* Standings */}
         {view === 'standings' && (
-          <div className="bg-white rounded-2xl shadow overflow-hidden border border-yellow-200">
+          <div className={`${cardBg} rounded-2xl shadow overflow-hidden border`}>
             <table className="w-full">
               <thead><tr style={{ background: '#92400e' }} className="text-white">
                 <th className={`${fs.cell} ${fs.header}`}>อันดับ</th>
@@ -175,16 +203,16 @@ export default function DisplayPage() {
               <tbody>
                 {standings.length === 0 && <tr><td colSpan={6} className="text-center p-8 text-amber-300">ยังไม่มีข้อมูล</td></tr>}
                 {standings.map((s, i) => (
-                  <tr key={s.player.id} className={`border-b border-yellow-100 ${i === 0 ? 'bg-yellow-100' : i === 1 ? 'bg-slate-50' : i === 2 ? 'bg-orange-50' : i % 2 === 0 ? 'bg-white' : 'bg-amber-50/30'}`}>
+                  <tr key={s.player.id} className={`border-b ${dark ? 'border-gray-700' : 'border-yellow-100'} ${dark ? (i === 0 ? 'bg-yellow-900/40' : i === 1 ? 'bg-gray-700' : i === 2 ? 'bg-orange-900/30' : i % 2 === 0 ? 'bg-gray-900' : 'bg-gray-800') : (i === 0 ? 'bg-yellow-100' : i === 1 ? 'bg-slate-50' : i === 2 ? 'bg-orange-50' : i % 2 === 0 ? 'bg-white' : 'bg-amber-50/30')}`}>
                     <td className={`${fs.cell} text-center`}>
                       <span className={`inline-flex items-center justify-center w-9 h-9 rounded-full font-black ${i === 0 ? 'bg-amber-400 text-white text-lg' : i === 1 ? 'bg-slate-300 text-white text-lg' : i === 2 ? 'bg-orange-400 text-white text-lg' : 'bg-gray-200 text-gray-600 text-sm'}`}>
                         {i < 3 ? ['🥇', '🥈', '🥉'][i] : s.rank}
                       </span>
                     </td>
-                    <td className={`${fs.cell} font-semibold ${fs.name}`}>
+                    <td className={`${fs.cell} font-semibold ${fs.name} ${textMain}`}>
                       {s.player.name} <span className="text-amber-500 font-normal text-xs">({s.player.number})</span>
                     </td>
-                    <td className={`${fs.cell} text-center text-gray-500 ${fs.stat}`}>{s.player.room}</td>
+                    <td className={`${fs.cell} text-center ${fs.stat} ${textMuted}`}>{s.player.room}</td>
                     <td className={`${fs.cell} text-center ${fs.stat}`}>{s.w}-{s.t}-{s.l}</td>
                     <td className={`${fs.cell} text-center font-black ${fs.pts}`}>{s.points}</td>
                     <td className={`${fs.cell} text-center font-bold ${fs.stat} ${s.diffSum > 0 ? 'text-green-700' : s.diffSum < 0 ? 'text-red-600' : 'text-gray-500'}`}>
@@ -205,7 +233,7 @@ export default function DisplayPage() {
                 <p className={`font-bold text-amber-800 mb-3 ${projector ? 'text-xl' : ''}`}>เกมที่ {latestGame}</p>
                 <div className="space-y-3">
                   {Object.entries(tablesByNum).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
-                    <div key={tn} className="bg-white rounded-2xl p-4 border border-yellow-200 shadow flex items-start gap-4">
+                    <div key={tn} className={`${cardBg} rounded-2xl p-4 border shadow flex items-start gap-4`}>
                       <div className={`rounded-xl px-4 py-2 text-white font-black min-w-[72px] text-center ${projector ? 'text-lg' : 'text-sm'}`}
                         style={{ background: '#d97706' }}>โต๊ะ {tn}</div>
                       <div className="flex-1 space-y-1.5">
@@ -234,7 +262,7 @@ export default function DisplayPage() {
               const hasTie = p.score1 !== null && p.score2 !== null && p.score1 === p.score2
               const r = (p.score1 !== null && p.score2 !== null) ? computeMatchResult(p.score1, p.score2) : null
               return (
-                <div key={i} className="bg-white rounded-2xl p-4 border border-yellow-200 shadow flex items-center gap-4">
+                <div key={i} className={`${cardBg} rounded-2xl p-4 border shadow flex items-center gap-4`}>
                   <div className={`rounded-xl px-3 py-2 text-white font-black min-w-[90px] text-center ${projector ? 'text-base' : 'text-xs'}`} style={{ background: '#92400e' }}>
                     {p.round}<br />คู่ {p.pair_no}
                   </div>
