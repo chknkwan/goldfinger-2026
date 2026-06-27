@@ -29,7 +29,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false)
   const [loadingGame, setLoadingGame] = useState<number | null>(null)
   const [totalGames, setTotalGames] = useState(4)
-  const [resetConfirmed, setResetConfirmed] = useState(false)
 
   // Players management
   const [showPlayers, setShowPlayers] = useState(false)
@@ -108,7 +107,7 @@ export default function AdminPage() {
   }
 
   async function resetSystem() {
-    if (!resetConfirmed) { alert('กรุณาติ๊กยืนยันก่อน'); return }
+    if (!confirm('⚠️ ยืนยันรีเซ็ตระบบทั้งหมด?\nข้อมูลผลการแข่งขัน โต๊ะ และเพลย์ออฟจะถูกลบหมด\n(รายชื่อนักเรียนยังอยู่)')) return
     await Promise.all([
       supabase.from('games').delete().neq('id', 0),
       supabase.from('table_assignments').delete().neq('id', 0),
@@ -117,7 +116,6 @@ export default function AdminPage() {
     ])
     await supabase.from('broadcast').insert({ type: 'reset', level: null, payload: {} })
     setStatus({ msg: '✅ รีเซ็ตระบบสำเร็จ', ok: true })
-    setResetConfirmed(false)
     await loadData()
   }
 
@@ -428,14 +426,9 @@ export default function AdminPage() {
         <div className="bg-red-50 rounded-2xl p-5 border-2 border-red-300 shadow">
           <p className="font-black text-red-700 mb-1">🚨 รีเซ็ตระบบ — ระวัง!</p>
           <p className="text-xs text-red-600 mb-3">จะลบ <strong>ผลการแข่งขัน โต๊ะ และเพลย์ออฟทั้งหมด</strong> ไม่สามารถกู้คืนได้ (รายชื่อนักเรียนยังอยู่)</p>
-          <label className="flex items-center gap-2 mb-3 cursor-pointer select-none">
-            <input type="checkbox" checked={resetConfirmed} onChange={e => setResetConfirmed(e.target.checked)}
-              className="w-4 h-4 accent-red-600" />
-            <span className="text-sm font-bold text-red-700">ฉันเข้าใจว่าข้อมูลทั้งหมดจะถูกลบถาวร</span>
-          </label>
-          <button onClick={resetSystem} disabled={!resetConfirmed}
-            className="w-full py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-30 disabled:cursor-not-allowed">
-            🗑️ ยืนยันรีเซ็ตระบบทั้งหมด
+          <button onClick={resetSystem}
+            className="w-full py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition">
+            🗑️ รีเซ็ตระบบทั้งหมด
           </button>
         </div>
 
