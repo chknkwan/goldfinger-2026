@@ -27,7 +27,9 @@ export default function AdminPage() {
   const [latestGame, setLatestGame] = useState(0)
   const [status, setStatus] = useState<{ msg: string; ok: boolean } | null>(null)
   const [loading, setLoading] = useState(false)
+  const [loadingGame, setLoadingGame] = useState<number | null>(null)
   const [totalGames, setTotalGames] = useState(4)
+  const [resetInput, setResetInput] = useState('')
 
   // Players management
   const [showPlayers, setShowPlayers] = useState(false)
@@ -79,12 +81,12 @@ export default function AdminPage() {
   useEffect(() => { if (showPlayers) loadAllPlayers() }, [showPlayers])
 
   async function generateTables(game: number) {
-    setLoading(true); setStatus(null)
+    setLoading(true); setLoadingGame(game); setStatus(null)
     const res = await fetch('/api/tables', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ level, game }) })
     const data = await res.json()
     if (!res.ok) { setStatus({ msg: data.error, ok: false }) }
     else { setStatus({ msg: `✅ จัดโต๊ะเกม ${game} เรียบร้อย`, ok: true }); await loadData() }
-    setLoading(false)
+    setLoading(false); setLoadingGame(null)
   }
 
   async function generateSemi() {
@@ -106,7 +108,7 @@ export default function AdminPage() {
   }
 
   async function resetSystem() {
-    if (!confirm('⚠️ ยืนยันรีเซ็ตระบบทั้งหมด? ข้อมูลผลการแข่งขัน โต๊ะ และเพลย์ออฟจะถูกลบหมด (รายชื่อนักเรียนยังอยู่)')) return
+    if (resetInput !== 'รีเซ็ต') { alert('พิมพ์คำว่า "รีเซ็ต" ในช่องยืนยันก่อน'); return }
     await Promise.all([
       supabase.from('games').delete().neq('id', 0),
       supabase.from('table_assignments').delete().neq('id', 0),
@@ -115,6 +117,7 @@ export default function AdminPage() {
     ])
     await supabase.from('broadcast').insert({ type: 'reset', level: null, payload: {} })
     setStatus({ msg: '✅ รีเซ็ตระบบสำเร็จ', ok: true })
+    setResetInput('')
     await loadData()
   }
 
@@ -288,9 +291,7 @@ export default function AdminPage() {
               return (
                 <button key={g} onClick={() => generateTables(g)} disabled={loading}
                   className={`flex-1 min-w-[70px] py-3 rounded-xl font-bold text-sm border-2 transition ${done ? 'bg-green-100 border-green-400 text-green-800' : isLatest ? 'bg-amber-500 border-amber-600 text-white' : 'bg-amber-50 border-yellow-300 text-amber-800 hover:bg-amber-100'}`}>
-                  เกม {g}<br />
-                  <span className="text-xs font-normal">{label}</span>
-                  {done && <span className="block text-xs">✅</span>}
+                  {loadingGame === g ? <span className="block animate-spin text-base">⏳</span> : <>เกม {g}<br /><span className="text-xs font-normal">{label}</span>{done && <span className="block text-xs">✅</span>}</>}
                 </button>
               )
             })}
@@ -424,10 +425,17 @@ export default function AdminPage() {
         </div>
 
         {/* Reset */}
-        <div className="bg-white rounded-2xl p-5 border border-red-200 shadow">
-          <p className="font-black text-red-700 mb-2">⚠️ รีเซ็ตระบบ</p>
-          <p className="text-xs text-red-500 mb-3">ลบผลการแข่งขัน โต๊ะ และเพลย์ออฟ <strong>ทั้งหมด</strong> (รายชื่อนักเรียนยังอยู่)</p>
-          <button onClick={resetSystem} className="w-full py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition">🗑️ รีเซ็ตระบบทั้งหมด</button>
+        <div className="bg-red-50 rounded-2xl p-5 border-2 border-red-300 shadow">
+          <p className="font-black text-red-700 mb-1">🚨 รีเซ็ตระบบ — ระวัง!</p>
+          <p className="text-xs text-red-600 mb-3">จะลบ <strong>ผลการแข่งขัน โต๊ะ และเพลย์ออฟทั้งหมด</strong> ไม่สามารถกู้คืนได้ (รายชื่อนักเรียนยังอยู่)</p>
+          <p className="text-xs font-bold text-red-700 mb-1">พิมพ์ &quot;รีเซ็ต&quot; เพื่อยืนยัน:</p>
+          <input value={resetInput} onChange={e => setResetInput(e.target.value)}
+            placeholder="พิมพ์: รีเซ็ต"
+            className="w-full px-3 py-2 border-2 border-red-300 rounded-xl text-sm mb-3 bg-white" />
+          <button onClick={resetSystem} disabled={resetInput !== 'รีเซ็ต'}
+            className="w-full py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-30 disabled:cursor-not-allowed">
+            🗑️ ยืนยันรีเซ็ตระบบทั้งหมด
+          </button>
         </div>
 
         {/* Players Management */}
