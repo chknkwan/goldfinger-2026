@@ -151,7 +151,7 @@ export default function DisplayPage() {
             </button>
           </div>
         </div>
-        <span className="inline-block px-4 py-1 bg-green-700 rounded-full text-sm font-bold">Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</span>
+        <span className="inline-block px-4 py-1 bg-green-700 rounded-full text-sm font-bold">{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</span>
       </div>
 
       {/* ข้อ 3: แจ้งเตือน realtime หลุด */}

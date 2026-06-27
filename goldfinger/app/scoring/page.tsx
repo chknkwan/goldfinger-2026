@@ -217,7 +217,7 @@ export default function ScoringPage() {
       <div className="w-full max-w-md rounded-2xl p-4 text-center text-white mb-3 shadow-lg"
         style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
         <h2 className="text-lg font-black">✍️ กรอกผลแมตช์</h2>
-        <p className="text-xs text-yellow-200 mt-1">Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</p>
+        <p className="text-xs text-yellow-200 mt-1">{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
       </div>
 
       {/* Level */}

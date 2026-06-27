@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Goldfinger — Math Week 2026",
-  description: "ระบบจัดการแข่งขัน Goldfinger โรงเรียนพูลเจริญวิทยาคม",
+  title: `Goldfinger — ${process.env.NEXT_PUBLIC_EVENT_NAME}`,
+  description: `ระบบจัดการแข่งขัน Goldfinger ${process.env.NEXT_PUBLIC_SCHOOL_NAME}`,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

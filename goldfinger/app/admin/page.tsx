@@ -244,7 +244,7 @@ export default function AdminPage() {
         <div className="max-w-2xl mx-auto mb-4 rounded-3xl p-6 text-center shadow-xl"
           style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
           <h1 style={{ fontFamily: "'Nunito',sans-serif" }} className="text-2xl font-black text-white">🥇 แผงแอดมิน Goldfinger</h1>
-          <p className="text-yellow-200 text-sm font-bold mt-1">Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</p>
+          <p className="text-yellow-200 text-sm font-bold mt-1">{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
           <div className="flex justify-center gap-3 mt-4 flex-wrap">
             <a href="/display" target="_blank" className="px-4 py-2 bg-white/20 rounded-xl text-white font-bold text-sm hover:bg-white/30 transition">🖥️ กระดานคะแนน</a>
             <a href="/scoring" target="_blank" className="px-4 py-2 bg-white/20 rounded-xl text-white font-bold text-sm hover:bg-white/30 transition">✍️ กรอกคะแนน</a>
@@ -549,7 +549,7 @@ export default function AdminPage() {
       <div id="print-tables">
         <div style={{ textAlign: 'center', marginBottom: 16 }}>
           <h2 style={{ fontSize: 20, fontWeight: 900 }}>🎮 การจับคู่เกมที่ {latestGame} — {level}</h2>
-          <p style={{ fontSize: 13 }}>Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</p>
+          <p style={{ fontSize: 13 }}>{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
         </div>
         {latestGame > 0 && tables[latestGame] && (() => {
           type TARow = { sub_table: string; player1: Player; player2: Player | null; is_bye: boolean; table_num: number }
