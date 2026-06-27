@@ -40,7 +40,6 @@ export default function ScoringPage() {
 
   const [status, setStatus] = useState<{ msg: string; ok: boolean } | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [locked, setLocked] = useState(false)
 
   const tableNumRef = useRef<HTMLInputElement>(null)
   const scoreARef = useRef<HTMLInputElement>(null)
@@ -68,7 +67,6 @@ export default function ScoringPage() {
           if (!userPickedGame) setGame(p.game || 1)
         }
         if (type === 'reset') clearForm()
-        if (type === 'lock') setLocked((p as { locked?: boolean })?.locked ?? false)
       })
       .subscribe()
     return () => { supabase.removeChannel(ch) }
@@ -242,13 +240,6 @@ export default function ScoringPage() {
         ))}
       </div>
 
-      {/* Lock banner */}
-      {locked && (
-        <div className="w-full max-w-md rounded-xl p-3 mb-3 text-center text-white font-black text-sm shadow bg-gray-800">
-          🔒 ระบบถูกล็อก — รอ Admin ปลดล็อกก่อนกรอกคะแนน
-        </div>
-      )}
-
       {/* Current game banner */}
       {latestGame > 0 && mode === 'qualify' && (
         <div className="w-full max-w-md rounded-xl p-3 mb-3 text-center text-white font-black text-sm shadow"
@@ -372,7 +363,7 @@ export default function ScoringPage() {
           )
         })()}
 
-        <button type="submit" disabled={submitting || locked || (mode === 'qualify' && !lookupResult)}
+        <button type="submit" disabled={submitting || (mode === 'qualify' && !lookupResult)}
           className="w-full py-4 rounded-xl font-black text-base text-white shadow-lg disabled:opacity-40 transition"
           style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
           {submitting ? '⏳ กำลังบันทึก...' : `🚀 บันทึกผล${subTable ? ` โต๊ะ ${subTable}` : ''}`}

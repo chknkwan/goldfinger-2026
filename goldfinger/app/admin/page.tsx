@@ -29,9 +29,6 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false)
   const [loadingGame, setLoadingGame] = useState<number | null>(null)
   const [totalGames, setTotalGames] = useState(4)
-  const [gameHistory, setGameHistory] = useState<{ sub_table: string; score1: number; score2: number; updated_at: string; game: number }[]>([])
-  const [showHistory, setShowHistory] = useState(false)
-  const [scoringLocked, setScoringLocked] = useState(false)
   const prevProgressRef = useRef<number>(0)
 
   // Players management
@@ -73,16 +70,6 @@ export default function AdminPage() {
     setLatestGame(maxGame)
     setPlayoffs((pf || []) as typeof playoffs)
 
-    // ข้อ 7: ประวัติการกรอก 10 รายการล่าสุด
-    type GR = GameRow & { updated_at?: string }
-    const history = (g as GR[] || [])
-      .filter(r => r.score1 !== null && r.score2 !== null)
-      .slice(0, 10)
-      .map(r => ({
-        sub_table: r.sub_table, score1: r.score1 as number, score2: r.score2 as number,
-        updated_at: r.updated_at || '', game: r.game
-      }))
-    setGameHistory(history)
   }, [level])
 
   useEffect(() => { if (authed) loadData() }, [authed, loadData])
@@ -456,52 +443,6 @@ export default function AdminPage() {
             <a href={`/api/export?level=${encodeURIComponent(level)}`} className="flex-1 py-3 rounded-xl text-center font-bold text-sm bg-green-700 text-white hover:bg-green-800 transition">📊 Export {level} (.xlsx)</a>
             <a href="/api/export?level=all" className="flex-1 py-3 rounded-xl text-center font-bold text-sm border-2 border-green-600 text-green-800 hover:bg-green-50 transition">📊 Export ทุกระดับ</a>
           </div>
-        </div>
-
-        {/* ข้อ 8: Lock การกรอกคะแนน */}
-        <div className="bg-white rounded-2xl p-5 border border-yellow-200 shadow">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-black text-amber-800">🔒 ล็อกการกรอกคะแนน</p>
-              <p className="text-xs text-amber-600 mt-1">{scoringLocked ? 'ล็อกอยู่ — กรรมการกรอกคะแนนไม่ได้' : 'ปลดล็อก — กรรมการกรอกได้ตามปกติ'}</p>
-            </div>
-            <button onClick={async () => {
-                const next = !scoringLocked
-                setScoringLocked(next)
-                await supabase.from('broadcast').insert({ type: 'lock', level: null, payload: { locked: next } })
-              }}
-              className={`px-5 py-2.5 rounded-xl font-bold text-sm transition ${scoringLocked ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-green-600 text-white hover:bg-green-700'}`}>
-              {scoringLocked ? '🔒 ล็อกอยู่' : '🔓 ปลดล็อก'}
-            </button>
-          </div>
-        </div>
-
-        {/* ข้อ 7: ประวัติการกรอก */}
-        <div className="bg-white rounded-2xl border border-yellow-200 shadow overflow-hidden">
-          <button onClick={() => setShowHistory(v => !v)} className="w-full p-5 flex justify-between items-center font-black text-amber-800 hover:bg-amber-50 transition">
-            <span>📋 ประวัติการกรอกคะแนนล่าสุด ({level})</span>
-            <span>{showHistory ? '▲' : '▼'}</span>
-          </button>
-          {showHistory && (
-            <div className="border-t border-yellow-100">
-              {gameHistory.length === 0
-                ? <p className="text-center text-amber-300 py-4 text-sm">ยังไม่มีประวัติ</p>
-                : <table className="w-full text-xs">
-                    <thead><tr className="bg-amber-50 text-amber-700"><th className="p-2 text-left">เกม</th><th className="p-2 text-left">โต๊ะ</th><th className="p-2">คะแนน</th><th className="p-2 text-left">เวลา</th></tr></thead>
-                    <tbody>
-                      {gameHistory.map((h, i) => (
-                        <tr key={i} className="border-t border-yellow-50">
-                          <td className="p-2 font-bold text-amber-700">เกม {h.game}</td>
-                          <td className="p-2 font-bold">{h.sub_table}</td>
-                          <td className="p-2 text-center font-black">{h.score1} – {h.score2}</td>
-                          <td className="p-2 text-gray-400">{h.updated_at ? new Date(h.updated_at).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '-'}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-              }
-            </div>
-          )}
         </div>
 
         {/* Reset */}
