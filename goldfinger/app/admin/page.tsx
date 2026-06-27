@@ -177,6 +177,16 @@ export default function AdminPage() {
     })
   }
 
+  function getGameProgress(game: number) {
+    const ta = (tables[game] || []).filter(t => !t.is_bye)
+    const gs = gameRows.filter(g => g.game === game)
+    const scored = ta.filter(t => {
+      const g = gs.find(g => g.sub_table === t.sub_table)
+      return g && g.score1 !== null && g.score2 !== null
+    }).length
+    return { scored, total: ta.length }
+  }
+
   // Awards
   function getAwards() {
     const pfFinal = playoffs.find(p => p.round === 'ชิงชนะเลิศ')
@@ -307,6 +317,22 @@ export default function AdminPage() {
             })
             return (
               <div className="mt-4 space-y-2">
+                {(() => {
+                  const { scored, total } = getGameProgress(latestGame)
+                  const pct = total > 0 ? Math.round(scored / total * 100) : 0
+                  return total > 0 && (
+                    <div className="mb-3">
+                      <div className="flex justify-between text-xs font-bold text-amber-700 mb-1">
+                        <span>ความคืบหน้าเกม {latestGame}</span>
+                        <span>{scored}/{total} โต๊ะ {scored === total ? '✅ ครบแล้ว' : ''}</span>
+                      </div>
+                      <div className="w-full bg-amber-100 rounded-full h-2.5">
+                        <div className="h-2.5 rounded-full transition-all duration-500"
+                          style={{ width: `${pct}%`, background: scored === total ? '#16a34a' : '#d97706' }} />
+                      </div>
+                    </div>
+                  )
+                })()}
                 <p className="text-xs font-bold text-amber-700 mb-2">โต๊ะเกมที่ {latestGame}:</p>
                 {Object.entries(byTable).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
                   <div key={tn} className="bg-amber-50 rounded-xl p-3 border border-yellow-200 text-sm">
