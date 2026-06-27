@@ -29,7 +29,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false)
   const [loadingGame, setLoadingGame] = useState<number | null>(null)
   const [totalGames, setTotalGames] = useState(4)
-  const [resetInput, setResetInput] = useState('')
+  const [resetConfirmed, setResetConfirmed] = useState(false)
 
   // Players management
   const [showPlayers, setShowPlayers] = useState(false)
@@ -108,7 +108,7 @@ export default function AdminPage() {
   }
 
   async function resetSystem() {
-    if (resetInput !== 'รีเซ็ต') { alert('พิมพ์คำว่า "รีเซ็ต" ในช่องยืนยันก่อน'); return }
+    if (!resetConfirmed) { alert('กรุณาติ๊กยืนยันก่อน'); return }
     await Promise.all([
       supabase.from('games').delete().neq('id', 0),
       supabase.from('table_assignments').delete().neq('id', 0),
@@ -117,7 +117,7 @@ export default function AdminPage() {
     ])
     await supabase.from('broadcast').insert({ type: 'reset', level: null, payload: {} })
     setStatus({ msg: '✅ รีเซ็ตระบบสำเร็จ', ok: true })
-    setResetInput('')
+    setResetConfirmed(false)
     await loadData()
   }
 
@@ -428,11 +428,12 @@ export default function AdminPage() {
         <div className="bg-red-50 rounded-2xl p-5 border-2 border-red-300 shadow">
           <p className="font-black text-red-700 mb-1">🚨 รีเซ็ตระบบ — ระวัง!</p>
           <p className="text-xs text-red-600 mb-3">จะลบ <strong>ผลการแข่งขัน โต๊ะ และเพลย์ออฟทั้งหมด</strong> ไม่สามารถกู้คืนได้ (รายชื่อนักเรียนยังอยู่)</p>
-          <p className="text-xs font-bold text-red-700 mb-1">พิมพ์ &quot;รีเซ็ต&quot; เพื่อยืนยัน:</p>
-          <input value={resetInput} onChange={e => setResetInput(e.target.value)}
-            placeholder="พิมพ์: รีเซ็ต"
-            className="w-full px-3 py-2 border-2 border-red-300 rounded-xl text-sm mb-3 bg-white" />
-          <button onClick={resetSystem} disabled={resetInput !== 'รีเซ็ต'}
+          <label className="flex items-center gap-2 mb-3 cursor-pointer select-none">
+            <input type="checkbox" checked={resetConfirmed} onChange={e => setResetConfirmed(e.target.checked)}
+              className="w-4 h-4 accent-red-600" />
+            <span className="text-sm font-bold text-red-700">ฉันเข้าใจว่าข้อมูลทั้งหมดจะถูกลบถาวร</span>
+          </label>
+          <button onClick={resetSystem} disabled={!resetConfirmed}
             className="w-full py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition disabled:opacity-30 disabled:cursor-not-allowed">
             🗑️ ยืนยันรีเซ็ตระบบทั้งหมด
           </button>
