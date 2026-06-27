@@ -537,12 +537,12 @@ export default function AdminPage() {
       </div>
 
       <style>{`
-        @media print {
-          body > * { display: none !important; }
-          #awards-section { display: block !important; }
-          #print-tables { display: block !important; }
-        }
         #print-tables { display: none; }
+        @media print {
+          body * { visibility: hidden; }
+          #print-tables { display: block !important; visibility: visible; position: fixed; top: 0; left: 0; width: 100%; padding: 24px; }
+          #print-tables * { visibility: visible; }
+        }
       `}</style>
 
       {/* ข้อ 3: ใบปะหน้าโต๊ะ (ซ่อนไว้ แสดงเฉพาะตอนพิมพ์) */}
