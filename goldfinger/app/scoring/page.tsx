@@ -103,8 +103,8 @@ export default function ScoringPage() {
     }
 
     setLookupResult(ta as TableRow)
-    setNameA(ta.player1.name)
-    setNameB(ta.player2?.name || '')
+    setNameA(`${ta.player1.name} (${ta.player1.number})`)
+    setNameB(ta.player2 ? `${ta.player2.name} (${ta.player2.number})` : '')
 
     const { data: existing } = await supabase.from('games')
       .select('score1, score2, sub_table')
