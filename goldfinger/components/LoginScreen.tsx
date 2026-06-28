@@ -1,41 +1,98 @@
 'use client'
 import { useState } from 'react'
 
-export default function LoginScreen({ onLogin }: { onLogin: (pw: string) => boolean }) {
+interface Props {
+  role?: 'admin' | 'scoring'
+  onLogin: (pw: string) => boolean
+}
+
+const CONFIG = {
+  admin: {
+    icon: '🛡️',
+    label: 'แผงแอดมิน',
+    hint: 'สำหรับกรรมการจัดโต๊ะ',
+    grad: 'from-amber-900 to-amber-600',
+    border: 'border-amber-200',
+    focus: 'focus:border-amber-500',
+    bg: 'bg-amber-50',
+    btn: 'from-amber-800 to-amber-500',
+    text: 'text-amber-800',
+    sub: 'text-amber-500',
+  },
+  scoring: {
+    icon: '✍️',
+    label: 'กรอกคะแนน',
+    hint: 'สำหรับกรรมการประจำโต๊ะ',
+    grad: 'from-amber-700 to-yellow-500',
+    border: 'border-yellow-200',
+    focus: 'focus:border-yellow-500',
+    bg: 'bg-yellow-50',
+    btn: 'from-amber-700 to-yellow-400',
+    text: 'text-amber-700',
+    sub: 'text-amber-400',
+  },
+}
+
+export default function LoginScreen({ role = 'admin', onLogin }: Props) {
   const [pw, setPw] = useState('')
   const [err, setErr] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const cfg = CONFIG[role]
+
+  const eventName = process.env.NEXT_PUBLIC_EVENT_NAME || 'Goldfinger'
+  const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || ''
 
   function submit(e: React.FormEvent) {
     e.preventDefault()
-    if (!onLogin(pw)) { setErr(true); setPw('') }
+    setLoading(true)
+    setTimeout(() => {
+      const ok = onLogin(pw)
+      setLoading(false)
+      if (!ok) { setErr(true); setPw('') }
+    }, 300)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ background: '#fffbeb' }}>
       <div className="w-full max-w-sm">
-        <div className="rounded-3xl p-8 shadow-xl border border-yellow-200 bg-white">
-          <div className="text-center mb-8">
-            <div className="text-5xl mb-3">🥇</div>
-            <h1 style={{ fontFamily: "'Nunito', sans-serif" }} className="text-2xl font-black text-amber-800">Goldfinger</h1>
-            <p className="text-sm text-amber-600 mt-1 font-semibold">Math Week 2026 • โรงเรียนพูลเจริญวิทยาคม</p>
-          </div>
+        {/* Header card */}
+        <div className={`rounded-3xl p-8 bg-gradient-to-br ${cfg.grad} text-white text-center mb-4 shadow-2xl`}>
+          <div className="text-6xl mb-3">{cfg.icon}</div>
+          <h1 className="text-2xl font-black" style={{ fontFamily: "'Nunito',sans-serif" }}>Goldfinger</h1>
+          <p className="text-yellow-100 text-sm mt-1 font-semibold">{cfg.label}</p>
+        </div>
+
+        {/* Login card */}
+        <div className={`rounded-3xl p-7 bg-white shadow-xl border-2 ${cfg.border}`}>
+          <p className={`text-center text-sm font-semibold ${cfg.sub} mb-6`}>{cfg.hint}</p>
           <form onSubmit={submit} className="space-y-4">
             <div>
-              <label className="block text-sm font-bold text-amber-800 mb-2">รหัสผ่าน</label>
+              <label className={`block text-sm font-bold ${cfg.text} mb-2`}>รหัสผ่าน</label>
               <input
                 type="password"
                 value={pw}
                 onChange={e => { setPw(e.target.value); setErr(false) }}
-                className="w-full px-4 py-3 rounded-xl border-2 border-yellow-300 bg-amber-50 text-lg font-semibold focus:outline-none focus:border-amber-500"
-                placeholder="••••••••"
+                className={`w-full px-4 py-3 rounded-2xl border-2 ${cfg.border} ${cfg.bg} text-lg font-semibold focus:outline-none ${cfg.focus} transition`}
+                placeholder="••••••"
                 autoFocus
               />
-              {err && <p className="text-red-600 text-sm font-bold mt-2">รหัสผ่านไม่ถูกต้อง</p>}
+              {err && (
+                <p className="text-red-500 text-sm font-bold mt-2 flex items-center gap-1">
+                  ❌ รหัสผ่านไม่ถูกต้อง
+                </p>
+              )}
             </div>
-            <button type="submit" className="w-full py-3 rounded-xl bg-gradient-to-r from-amber-800 to-amber-500 text-white font-bold text-lg shadow-md hover:opacity-90 transition">
-              เข้าสู่ระบบ
+            <button
+              type="submit"
+              disabled={loading || !pw}
+              className={`w-full py-3 rounded-2xl bg-gradient-to-r ${cfg.btn} text-white font-bold text-lg shadow-lg hover:opacity-90 active:scale-95 transition-all disabled:opacity-50`}
+            >
+              {loading ? '⏳ กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
             </button>
           </form>
+          <p className={`text-center text-xs ${cfg.sub} mt-5 font-semibold`}>
+            {eventName} · {schoolName}
+          </p>
         </div>
       </div>
     </div>

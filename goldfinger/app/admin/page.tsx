@@ -17,7 +17,7 @@ interface Standing {
 }
 
 export default function AdminPage() {
-  const { authed, checked, login, logout } = useAuth()
+  const { authed, checked, login, logout } = useAuth('admin')
   const [level, setLevel] = useState<Level>('มต้น')
   const [players, setPlayers] = useState<Player[]>([])
   const [gameRows, setGameRows] = useState<GameRow[]>([])
@@ -44,6 +44,11 @@ export default function AdminPage() {
   const [importPreview, setImportPreview] = useState<{ name: string; level: string; room: string }[]>([])
   const [importDuplicates, setImportDuplicates] = useState<{ name: string; level: string; room: string }[]>([])
   const [showImportConfirm, setShowImportConfirm] = useState(false)
+  const [showStandings, setShowStandings] = useState(false)
+
+  // Broadcast
+  const [announcement, setAnnouncement] = useState('')
+  const [announceLoading, setAnnounceLoading] = useState(false)
 
   const loadData = useCallback(async () => {
     const [{ data: p }, { data: g }, { data: ta }, { data: pf }] = await Promise.all([
@@ -228,8 +233,35 @@ export default function AdminPage() {
     return { champion, runnerUp, thirdPlace }
   }
 
+  async function sendAnnouncement(e: React.FormEvent) {
+    e.preventDefault()
+    if (!announcement.trim()) return
+    setAnnounceLoading(true)
+    await fetch('/api/broadcast', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ type: 'announcement', level, payload: { message: announcement.trim() } })
+    })
+    setAnnounceLoading(false)
+    setAnnouncement('')
+    setStatus({ msg: '✅ ส่งข้อความไปยังหน้าจอแสดงผลแล้ว', ok: true })
+  }
+
+  function downloadSampleExcel() {
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['ชื่อ', 'ระดับ', 'ห้อง'],
+      ['เด็กชายตัวอย่าง ทดสอบ', 'มต้น', 'ม.1/1'],
+      ['เด็กหญิงตัวอย่าง สอบทด', 'มต้น', 'ม.2/3'],
+      ['นายตัวอย่าง ทดสอบ', 'มปลาย', 'ม.4/2'],
+      ['นางสาวตัวอย่าง สอบทด', 'มปลาย', 'ม.5/1'],
+    ])
+    ws['!cols'] = [{ wch: 30 }, { wch: 12 }, { wch: 10 }]
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'ผู้เล่น')
+    XLSX.writeFile(wb, 'ตัวอย่าง_รายชื่อผู้เล่น.xlsx')
+  }
+
   if (!checked) return null
-  if (!authed) return <LoginScreen onLogin={login} />
+  if (!authed) return <LoginScreen role="admin" onLogin={login} />
 
   const awards = getAwards()
 
@@ -301,28 +333,49 @@ export default function AdminPage() {
           <div className="text-xs text-amber-700 bg-amber-50 rounded-lg p-3 mb-4">
             เกม 1: สุ่มจับโต๊ะ &nbsp;|&nbsp; เลขคู่: ไขว้โต๊ะเดิม &nbsp;|&nbsp; เลขคี่ (3+): Swiss จัดใหม่ตามแต้ม
           </div>
-          <div className="flex flex-wrap gap-2">
+          {/* Game count control */}
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-bold text-amber-700">{totalGames} เกม</span>
+            <div className="flex gap-2">
+              {totalGames > 4 && (
+                <button onClick={() => setTotalGames(n => Math.max(4, n - 1))}
+                  className="w-9 h-9 rounded-full font-black text-lg border-2 border-amber-300 text-amber-600 hover:bg-amber-100 transition flex items-center justify-center">
+                  −
+                </button>
+              )}
+              <button onClick={() => setTotalGames(n => n + 1)}
+                className="w-9 h-9 rounded-full font-black text-lg border-2 border-amber-400 bg-amber-500 text-white hover:bg-amber-600 transition flex items-center justify-center">
+                +
+              </button>
+            </div>
+          </div>
+
+          {/* Game cards */}
+          <div className="grid grid-cols-2 gap-3">
             {Array.from({ length: totalGames }, (_, i) => i + 1).map(g => {
               const done = isGameDone(g)
-              const isLatest = latestGame === g
+              const hasTable = !!(tables[g] && tables[g].length > 0)
+              const locked = g > 1 && !isGameDone(g - 1) && !hasTable
               const label = g === 1 ? 'Random' : g % 2 === 0 ? 'ไขว้' : 'Swiss'
               return (
                 <button key={g} onClick={() => generateTables(g)} disabled={loading}
-                  className={`flex-1 min-w-[70px] py-3 rounded-xl font-bold text-sm border-2 transition ${done ? 'bg-green-100 border-green-400 text-green-800' : isLatest ? 'bg-amber-500 border-amber-600 text-white' : 'bg-amber-50 border-yellow-300 text-amber-800 hover:bg-amber-100'}`}>
-                  {loadingGame === g ? <span className="block animate-spin text-base">⏳</span> : <>เกม {g}<br /><span className="text-xs font-normal">{label}</span>{done && <span className="block text-xs">✅</span>}</>}
+                  className={`relative py-4 px-3 rounded-2xl font-bold text-sm border-2 transition text-left shadow-sm
+                    ${done ? 'bg-green-50 border-green-400 text-green-800'
+                    : hasTable && !done ? 'bg-amber-50 border-amber-400 text-amber-800'
+                    : locked ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-white border-yellow-300 text-amber-800 hover:bg-amber-50'}`}>
+                  {locked && <span className="absolute top-2 right-2 text-base">🔒</span>}
+                  {done && <span className="absolute top-2 right-2 text-base">✅</span>}
+                  {loadingGame === g
+                    ? <span className="block animate-spin text-xl text-center">⏳</span>
+                    : <>
+                        <span className="block text-base font-black">เกม {g}</span>
+                        <span className="text-xs font-normal opacity-70">{label}</span>
+                      </>
+                  }
                 </button>
               )
             })}
-            <button onClick={() => setTotalGames(n => n + 1)}
-              className="min-w-[44px] py-3 px-3 rounded-xl font-black text-xl border-2 border-dashed border-amber-300 text-amber-400 hover:border-amber-500 hover:text-amber-600 transition">
-              +
-            </button>
-            {totalGames > 4 && (
-              <button onClick={() => setTotalGames(n => Math.max(4, n - 1))}
-                className="min-w-[44px] py-3 px-3 rounded-xl font-black text-xl border-2 border-dashed border-red-200 text-red-300 hover:border-red-400 hover:text-red-500 transition">
-                −
-              </button>
-            )}
           </div>
 
           {/* แสดงโต๊ะของเกมล่าสุด */}
@@ -334,25 +387,54 @@ export default function AdminPage() {
               if (!byTable[tn]) byTable[tn] = []
               byTable[tn].push(r as unknown as TARow)
             })
+
+            const { scored, total } = getGameProgress(latestGame)
+            const pct = total > 0 ? Math.round(scored / total * 100) : 0
+
+            // หา sub_tables ที่ยังไม่ได้กรอก
+            const gs = gameRows.filter(g => g.game === latestGame)
+            const missingTables = (tables[latestGame] || [])
+              .filter(t => !t.is_bye)
+              .filter(t => {
+                const g = gs.find(g => g.sub_table === t.sub_table)
+                return !(g && g.score1 !== null && g.score2 !== null)
+              })
+              .map(t => (t as unknown as TARow).sub_table)
+
             return (
-              <div className="mt-4 space-y-2">
-                {(() => {
-                  const { scored, total } = getGameProgress(latestGame)
-                  const pct = total > 0 ? Math.round(scored / total * 100) : 0
-                  return total > 0 && (
-                    <div className="mb-3">
-                      <div className="flex justify-between text-xs font-bold text-amber-700 mb-1">
-                        <span>ความคืบหน้าเกม {latestGame}</span>
-                        <span>{scored}/{total} โต๊ะ {scored === total ? '✅ ครบแล้ว' : ''}</span>
-                      </div>
-                      <div className="w-full bg-amber-100 rounded-full h-2.5">
-                        <div className="h-2.5 rounded-full transition-all duration-500"
-                          style={{ width: `${pct}%`, background: scored === total ? '#16a34a' : '#d97706' }} />
-                      </div>
+              <div className="mt-4 space-y-3">
+                {/* Progress bar */}
+                {total > 0 && (
+                  <div>
+                    <div className="flex justify-between text-xs font-bold text-amber-700 mb-1">
+                      <span>ความคืบหน้าเกม {latestGame}</span>
+                      <span>{scored}/{total} โต๊ะ {scored === total ? '✅ ครบแล้ว' : ''}</span>
                     </div>
-                  )
-                })()}
-                <div className="flex justify-between items-center mb-2">
+                    <div className="w-full bg-amber-100 rounded-full h-2.5">
+                      <div className="h-2.5 rounded-full transition-all duration-500"
+                        style={{ width: `${pct}%`, background: scored === total ? '#16a34a' : '#d97706' }} />
+                    </div>
+                  </div>
+                )}
+
+                {/* Missing tables warning card */}
+                {missingTables.length > 0 && (
+                  <div className="bg-yellow-50 border border-yellow-300 rounded-xl p-3">
+                    <p className="text-xs font-bold text-yellow-800 mb-2">
+                      ⏳ เกม {latestGame} ยังกรอกไม่ครบ — เหลือ {missingTables.length} โต๊ะ
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {missingTables.map(sub => (
+                        <span key={sub} className="px-2 py-0.5 bg-yellow-200 text-yellow-900 text-xs font-bold rounded-full">
+                          โต๊ะ {sub}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Table list */}
+                <div className="flex justify-between items-center">
                   <p className="text-xs font-bold text-amber-700">โต๊ะเกมที่ {latestGame}:</p>
                   <button onClick={() => window.print()} className="px-3 py-1 rounded-lg border border-amber-400 text-amber-700 text-xs font-bold hover:bg-amber-50">🖨️ พิมพ์ใบปะหน้า</button>
                 </div>
@@ -394,28 +476,42 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* Standings */}
-        <div id="section-standings" className="bg-white rounded-2xl p-5 border border-yellow-200 shadow scroll-mt-14">
-          <p className="font-black text-amber-800 mb-3">📊 ตารางอันดับปัจจุบัน ({level})</p>
-          {standings.length === 0 ? (
-            <p className="text-center text-amber-300 py-4">ยังไม่มีข้อมูล</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead><tr className="bg-amber-800 text-white"><th className="p-2">อันดับ</th><th className="p-2 text-left">ชื่อ</th><th className="p-2">ห้อง</th><th className="p-2">W-T-L</th><th className="p-2">แต้ม</th><th className="p-2">ผลต่าง</th></tr></thead>
-                <tbody>
-                  {standings.map((s, i) => (
-                    <tr key={s.player.id} className={i % 2 === 0 ? 'bg-amber-50' : 'bg-white'}>
-                      <td className="p-2 text-center font-bold">{s.rank}</td>
-                      <td className="p-2 font-semibold">{s.player.name} <span className="text-amber-500 font-normal text-xs">({s.player.number})</span></td>
-                      <td className="p-2 text-center text-xs">{s.player.room}</td>
-                      <td className="p-2 text-center">{s.w}-{s.t}-{s.l}</td>
-                      <td className="p-2 text-center font-black">{s.points}</td>
-                      <td className="p-2 text-center">{s.diffSum > 0 ? '+' : ''}{s.diffSum}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Standings — collapsible */}
+        <div id="section-standings" className="bg-white rounded-2xl border border-yellow-200 shadow overflow-hidden scroll-mt-14">
+          <button onClick={() => setShowStandings(v => !v)} className="w-full p-5 flex justify-between items-center font-black text-amber-800 hover:bg-amber-50 transition">
+            <span>📊 ตารางอันดับปัจจุบัน ({level})</span>
+            <span className="text-amber-400">{showStandings ? '▲' : '▼'}</span>
+          </button>
+          {showStandings && (
+            <div className="border-t border-yellow-100 overflow-x-auto">
+              {standings.length === 0
+                ? <p className="text-center text-amber-300 py-4 px-5">ยังไม่มีข้อมูล</p>
+                : (
+                  <table className="w-full text-xs">
+                    <thead><tr className="text-white" style={{ background: '#92400e' }}>
+                      <th className="p-2 rounded-l text-center">อันดับ</th>
+                      <th className="p-2 text-left">ชื่อ</th>
+                      <th className="p-2 text-center">ห้อง</th>
+                      <th className="p-2 text-center">W-T-L</th>
+                      <th className="p-2 text-center">แต้ม</th>
+                      <th className="p-2 text-center rounded-r">ผลต่าง</th>
+                    </tr></thead>
+                    <tbody>
+                      {standings.map((s, i) => (
+                        <tr key={s.player.id} className={`border-b border-yellow-50 ${i === 0 ? 'bg-yellow-50' : i === 1 ? 'bg-slate-50' : i === 2 ? 'bg-orange-50' : ''}`}>
+                          <td className="p-2 text-center">{i < 3 ? ['🥇','🥈','🥉'][i] : <span className="text-amber-600">{s.rank}</span>}</td>
+                          <td className="p-2">{s.player.name} <span className="text-amber-400">(#{s.player.number})</span></td>
+                          <td className="p-2 text-center text-amber-400">{s.player.room}</td>
+                          <td className="p-2 text-center text-amber-600">{s.w}-{s.t}-{s.l}</td>
+                          <td className="p-2 text-center font-black text-amber-800">{s.points}</td>
+                          <td className={`p-2 text-center font-bold ${s.diffSum > 0 ? 'text-emerald-600' : s.diffSum < 0 ? 'text-red-500' : 'text-gray-400'}`}>
+                            {s.diffSum > 0 ? '+' : ''}{s.diffSum}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
             </div>
           )}
         </div>
@@ -434,6 +530,22 @@ export default function AdminPage() {
           {awards.thirdPlace.map((p, i) => (
             <div key={i} className="rounded-xl p-4 mb-3 border-2 border-orange-300 bg-orange-50 flex gap-4 items-center"><span className="text-4xl">🥉</span><div><p className="text-xs font-bold text-orange-700">อันดับ 3 ร่วม</p><p className="font-black text-base">{p.name}</p><p className="text-xs text-orange-600">หมายเลข {p.number} • {p.room}</p></div></div>
           ))}
+        </div>
+
+        {/* Broadcast */}
+        <div className="bg-white rounded-2xl p-5 border border-yellow-200 shadow">
+          <p className="font-black text-amber-800 mb-3">📢 ส่งข้อความไปหน้าจอ</p>
+          <form onSubmit={sendAnnouncement} className="flex gap-2">
+            <input type="text" value={announcement} onChange={e => setAnnouncement(e.target.value)}
+              placeholder="เช่น พักรับประทานอาหาร 30 นาที"
+              className="flex-1 px-3 py-2.5 rounded-xl border-2 border-yellow-200 bg-amber-50 text-sm font-semibold focus:outline-none focus:border-amber-400" />
+            <button type="submit" disabled={!announcement.trim() || announceLoading}
+              className="px-4 py-2.5 rounded-xl font-bold text-sm text-white shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 shrink-0"
+              style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
+              {announceLoading ? '⏳' : '📤 ส่ง'}
+            </button>
+          </form>
+          <p className="text-xs text-amber-400 mt-2">ข้อความจะแสดงบนหน้าจอ display 30 วินาที</p>
         </div>
 
         {/* Export */}
@@ -477,7 +589,13 @@ export default function AdminPage() {
 
               {/* Import Excel */}
               <div className="border-t pt-4">
-                <p className="font-bold text-amber-700 text-sm mb-2">นำเข้าจาก Excel (คอลัมน์: ชื่อ | ระดับ | ห้อง)</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="font-bold text-amber-700 text-sm">นำเข้าจาก Excel (คอลัมน์: ชื่อ | ระดับ | ห้อง)</p>
+                  <button onClick={downloadSampleExcel}
+                    className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 transition">
+                    📥 ดาวน์โหลดตัวอย่าง
+                  </button>
+                </div>
                 <input type="file" accept=".xlsx,.csv" onChange={handleImportFile} className="w-full text-sm mb-2" />
                 {importPreview.length > 0 && (
                   <div className="bg-amber-50 rounded-xl p-3 mb-2 text-xs">
@@ -505,11 +623,13 @@ export default function AdminPage() {
                 if (!lvPlayers.length) return null
                 return (
                   <div key={lv} className="border-t pt-4">
-                    <p className="font-bold text-amber-800 text-sm mb-2">{lv} ({lvPlayers.length} คน)</p>
-                    <div className="space-y-1">
+                    <p className="font-bold text-amber-800 text-sm mb-2">
+                      👤 รายชื่อผู้เล่น {lv === 'มต้น' ? 'ม.ต้น' : 'ม.ปลาย'} ({lvPlayers.length} คน)
+                    </p>
+                    <div className="overflow-y-auto rounded-xl border border-yellow-200 space-y-1.5 p-2" style={{ maxHeight: 320 }}>
                       {lvPlayers.map(p => (
-                        <div key={p.id} className="flex items-center gap-2 text-sm py-1.5 border-b border-yellow-50">
-                          <span className="font-bold text-amber-700 w-6 text-center">{p.number}</span>
+                        <div key={p.id} className="flex items-center gap-2 text-sm bg-amber-50 rounded-xl px-3 py-2.5 border border-yellow-100">
+                          <span className="font-black text-amber-500 w-7 text-center text-xs">#{p.number}</span>
                           {editingPlayer?.id === p.id ? (
                             <>
                               <input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 px-2 py-1 border border-yellow-300 rounded-lg text-sm" />
@@ -519,10 +639,12 @@ export default function AdminPage() {
                             </>
                           ) : (
                             <>
-                              <span className="flex-1">{p.name}</span>
-                              <span className="text-amber-500 text-xs">{p.room}</span>
-                              <button onClick={() => { setEditingPlayer(p); setEditName(p.name); setEditRoom(p.room) }} className="px-2 py-1 text-xs border border-amber-300 rounded-lg text-amber-700 hover:bg-amber-50">✏️</button>
-                              <button onClick={() => deletePlayer(p)} className="px-2 py-1 text-xs border border-red-300 rounded-lg text-red-600 hover:bg-red-50">🗑️</button>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-bold text-amber-900 text-sm truncate">{p.name}</p>
+                                <p className="text-amber-500 text-xs">{p.room}</p>
+                              </div>
+                              <button onClick={() => { setEditingPlayer(p); setEditName(p.name); setEditRoom(p.room) }} className="px-2.5 py-1.5 text-xs border border-amber-300 rounded-lg text-amber-700 hover:bg-amber-100 font-bold flex items-center gap-1">✏️ แก้ไข</button>
+                              <button onClick={() => deletePlayer(p)} className="px-2 py-1.5 text-xs border border-red-200 rounded-lg text-red-400 hover:bg-red-50">🗑️</button>
                             </>
                           )}
                         </div>
