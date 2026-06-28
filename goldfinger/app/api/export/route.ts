@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
           'คะแนน ผู้เล่น 1': p.score1 ?? '',
           'ชื่อ ผู้เล่น 2': p.player2?.name || '',
           'คะแนน ผู้เล่น 2': p.score2 ?? '',
-          'ผู้ชนะ': (p.score1 !== null && p.score2 !== null) ? (r.resultA === 'W' ? p.player1?.name : p.player2?.name) : '-',
+          'ผู้ชนะ': (p.score1 !== null && p.score2 !== null) ? (r.resultA === 'W' ? p.player1?.name : r.resultB === 'W' ? p.player2?.name : 'เสมอ') : '-',
         }
       })
       const ws3 = XLSX.utils.json_to_sheet(pfRows)

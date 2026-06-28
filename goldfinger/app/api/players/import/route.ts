@@ -22,6 +22,12 @@ export async function POST(req: NextRequest) {
     if (existingSet.has(key)) { duplicates.push(r) } else { toInsert.push(r) }
   }
 
+  // แจ้งเตือนถ้ามีระดับที่ไม่รู้จัก
+  const invalidLevel = toInsert.filter(r => r.level !== 'มต้น' && r.level !== 'มปลาย')
+  if (invalidLevel.length > 0) {
+    return NextResponse.json({ error: `พบระดับที่ไม่ถูกต้อง: ${[...new Set(invalidLevel.map(r => r.level))].join(', ')} — ใช้ "มต้น" หรือ "มปลาย" เท่านั้น` }, { status: 400 })
+  }
+
   if (duplicates.length > 0 && !force) {
     return NextResponse.json({ duplicates, toInsert: toInsert.length })
   }
