@@ -213,11 +213,11 @@ export default function ScoringPage() {
   return (
     <div className="min-h-screen flex flex-col items-center p-4 pb-10" style={{ background: '#FEFAF2' }}>
       {/* Header */}
-      <div className="w-full max-w-md rounded-3xl p-5 text-center text-white mb-4 shadow-xl"
-        style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
+      <div className="w-full max-w-md rounded-3xl p-6 text-center text-white mb-4 shadow-xl"
+        style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
         <div className="text-3xl mb-1">✍️</div>
         <h1 className="text-xl font-black" style={{ fontFamily: "'Nunito',sans-serif" }}>กรอกผลแมตช์</h1>
-        <p className="text-yellow-200 text-xs mt-1 font-semibold">{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
+        <p className="text-teal-100 text-xs mt-1 font-semibold">{process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
       </div>
 
       <div className="w-full max-w-md space-y-3">
@@ -226,7 +226,7 @@ export default function ScoringPage() {
           {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
             <button key={lv} onClick={() => { setLevel(lv); clearForm(); setUserPickedGame(false) }}
               className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${level === lv ? 'text-white shadow' : 'text-teal-600 hover:text-teal-800'}`}
-              style={level === lv ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
+              style={level === lv ? { background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' } : {}}>
               {lv === 'มต้น' ? 'ม.ต้น' : 'ม.ปลาย'}
             </button>
           ))}
@@ -375,7 +375,7 @@ export default function ScoringPage() {
 
           <button type="submit" disabled={submitting || (mode === 'qualify' && lookupState !== 'ok')}
             className="w-full py-3.5 rounded-2xl font-black text-base text-white shadow-lg transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
+            style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
             {submitting ? '⏳ กำลังบันทึก...' : submitLabel}
           </button>
 
