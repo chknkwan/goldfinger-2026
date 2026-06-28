@@ -114,7 +114,9 @@ export default function DisplayPage() {
     pfSemis.forEach(s => {
       if (s.score1 !== null && s.score2 !== null) {
         const r = computeMatchResult(s.score1, s.score2)
-        thirdPlace.push(r.resultA === 'L' ? s.player1 : (s.player2 || s.player1))
+        if (r.resultA === 'L') thirdPlace.push(s.player1)
+        else if (r.resultB === 'L') thirdPlace.push(s.player2 || s.player1)
+        // เสมอ — ไม่แสดงจนกว่ากรรมการจะตัดสิน
       }
     })
     return { champion, runnerUp, thirdPlace }
