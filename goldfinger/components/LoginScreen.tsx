@@ -39,7 +39,6 @@ export default function LoginScreen({ role = 'admin', onLogin }: Props) {
   const [loading, setLoading] = useState(false)
   const cfg = CONFIG[role]
 
-  const eventName = process.env.NEXT_PUBLIC_EVENT_NAME || 'Gold Finger'
   const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || ''
 
   async function submit(e: React.FormEvent) {
