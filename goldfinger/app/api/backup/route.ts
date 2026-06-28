@@ -51,13 +51,14 @@ export async function POST(req: NextRequest) {
     supabase.from('players').delete().neq('id', 0),
   ])
 
-  // Re-insert
-  const strip = (rows: Record<string, unknown>[]) => rows.map(r => { const c = { ...r }; delete c.id; return c })
+  // Re-insert — keep player IDs so FK references in games/table_assignments/playoffs remain valid
+  const stripExceptId = (rows: Record<string, unknown>[]) => rows.map(r => { const c = { ...r }; delete c.updated_at; return c })
+  const stripAll = (rows: Record<string, unknown>[]) => rows.map(r => { const c = { ...r }; delete c.id; delete c.updated_at; return c })
 
-  if (body.players?.length) await supabase.from('players').insert(strip(body.players))
-  if (body.games?.length) await supabase.from('games').insert(strip(body.games))
-  if (body.table_assignments?.length) await supabase.from('table_assignments').insert(strip(body.table_assignments))
-  if (body.playoffs?.length) await supabase.from('playoffs').insert(strip(body.playoffs))
+  if (body.players?.length) await supabase.from('players').insert(stripExceptId(body.players))
+  if (body.games?.length) await supabase.from('games').insert(stripAll(body.games))
+  if (body.table_assignments?.length) await supabase.from('table_assignments').insert(stripAll(body.table_assignments))
+  if (body.playoffs?.length) await supabase.from('playoffs').insert(stripAll(body.playoffs))
 
   return NextResponse.json({ ok: true })
 }

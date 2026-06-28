@@ -15,9 +15,18 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { game, level, sub_table, player1_id, score1, player2_id, score2 } = body
+  const { game, level, sub_table, player1_id, score1, player2_id, score2, force } = body
 
   const table_num = parseInt(sub_table.replace(/[^0-9]/g, ''), 10)
+
+  // ถ้าไม่ force ให้เช็คว่ามีผลอยู่แล้วไหม — ถ้ามีให้ return 409
+  if (!force) {
+    const { data: existing } = await supabase.from('games')
+      .select('id, score1').eq('game', game).eq('level', level).eq('sub_table', sub_table).single()
+    if (existing && existing.score1 !== null) {
+      return NextResponse.json({ conflict: true }, { status: 409 })
+    }
+  }
 
   const { data, error } = await supabase.from('games')
     .upsert(

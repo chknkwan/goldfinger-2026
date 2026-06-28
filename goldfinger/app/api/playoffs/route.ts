@@ -53,9 +53,12 @@ export async function POST(req: NextRequest) {
 
     function getWinner(s: { player1_id: number; score1: number; player2_id: number; score2: number }) {
       const r = computeMatchResult(s.score1, s.score2)
+      if (r.resultA === 'T') throw new Error('ผลรองชนะเลิศเสมอ — กรรมการต้องตัดสินก่อน')
       return r.resultA === 'W' ? { winner: s.player1_id, loser: s.player2_id } : { winner: s.player2_id, loser: s.player1_id }
     }
-    const r1 = getWinner(semis[0]), r2 = getWinner(semis[1])
+    let r1, r2
+    try { r1 = getWinner(semis[0]); r2 = getWinner(semis[1]) }
+    catch (e) { return NextResponse.json({ error: (e as Error).message }, { status: 400 }) }
     await supabase.from('playoffs').delete().eq('level', level).eq('round', 'ชิงชนะเลิศ')
     await supabase.from('playoffs').insert([{ level, round: 'ชิงชนะเลิศ', pair_no: 1, player1_id: r1.winner, player2_id: r2.winner }])
     return NextResponse.json({ ok: true, final: { p1Id: r1.winner, p2Id: r2.winner }, thirdPlace: [r1.loser, r2.loser] })
