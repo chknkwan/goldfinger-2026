@@ -173,7 +173,7 @@ export default function DisplayPage() {
             {([['standings', '📊 อันดับ'], ['tables', '🪑 โต๊ะ'], ['playoff', '🏆 เพลย์ออฟ'], ['awards', '🎖️ รางวัล']] as [View, string][]).map(([v, label]) => (
               <button key={v} onClick={() => { setView(v); setAutoRotate(false) }}
                 className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all ${view === v ? 'text-white shadow' : `${dk.subtext} hover:opacity-80`}`}
-                style={view === v ? { background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' } : {}}>
+                style={view === v ? { background: '#F98B8B' } : {}}>
                 {label}
               </button>
             ))}
