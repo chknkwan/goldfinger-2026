@@ -107,8 +107,9 @@ export default function DisplayPage() {
     let champion: Player | null = null, runnerUp: Player | null = null, thirdPlace: Player[] = []
     if (pfFinal && pfFinal.score1 !== null && pfFinal.score2 !== null) {
       const r = computeMatchResult(pfFinal.score1, pfFinal.score2)
-      champion = r.resultA === 'W' ? pfFinal.player1 : pfFinal.player2
-      runnerUp = r.resultA === 'W' ? pfFinal.player2 : pfFinal.player1
+      if (r.resultA === 'W') { champion = pfFinal.player1; runnerUp = pfFinal.player2 }
+      else if (r.resultB === 'W') { champion = pfFinal.player2; runnerUp = pfFinal.player1 }
+      // เสมอ — ไม่แสดงจนกว่ากรรมการจะตัดสิน
     }
     pfSemis.forEach(s => {
       if (s.score1 !== null && s.score2 !== null) {
