@@ -63,7 +63,7 @@ export default function DisplayPage() {
     setLastUpdate(new Date().toLocaleTimeString('th-TH'))
     setRealtimeOk(true)
     if (realtimeTimer.current) clearTimeout(realtimeTimer.current)
-    realtimeTimer.current = setTimeout(() => setRealtimeOk(false), 30000)
+    realtimeTimer.current = setTimeout(() => setRealtimeOk(false), 60000)
   }, [level])
 
   useEffect(() => {
@@ -117,16 +117,16 @@ export default function DisplayPage() {
 
   const dk = dark
     ? { bg: '#1c1410', card: '#292015', border: '#4a3820', text: 'text-amber-100', subtext: 'text-amber-400', thead: '#92400e', rowEven: 'bg-amber-950/20', tableBg: 'bg-amber-950/30' }
-    : { bg: '#fffbeb', card: 'white', border: '#fde68a', text: 'text-gray-900', subtext: 'text-amber-500', thead: '#92400e', rowEven: 'bg-amber-50/30', tableBg: 'bg-amber-50' }
+    : { bg: '#fffbeb', card: 'white', border: '#fde68a', text: 'text-gray-900', subtext: 'text-amber-600', thead: '#b45309', rowEven: 'bg-amber-50/30', tableBg: 'bg-amber-50' }
 
   return (
     <div className="min-h-screen pb-16 transition-colors duration-300" style={{ background: dk.bg }}>
       {/* Header */}
       <div className="rounded-b-3xl p-5 text-center text-white shadow-xl mb-4"
-        style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
+        style={{ background: 'linear-gradient(135deg,#b45309,#fbbf24)' }}>
         <div className="flex items-center justify-between mb-2">
-          <span className="font-black text-yellow-200 tabular-nums text-sm w-24 text-left">{clock}</span>
-          <h1 className="font-black text-xl flex-1" style={{ fontFamily: "'Nunito',sans-serif" }}>🥇 Goldfinger</h1>
+          <span className="font-black text-yellow-100 tabular-nums text-sm w-24 text-left">{clock}</span>
+          <h1 className="font-black text-xl flex-1" style={{ fontFamily: "'Nunito',sans-serif" }}>🏅 Gold Finger</h1>
           <div className="flex gap-1.5 w-24 justify-end">
             <button onClick={() => setDark(v => !v)}
               className={`text-xs font-bold px-2 py-1.5 rounded-lg transition ${dark ? 'bg-white text-amber-800' : 'bg-white/20 text-yellow-100 hover:bg-white/30'}`}>
@@ -163,7 +163,7 @@ export default function DisplayPage() {
             {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
               <button key={lv} onClick={() => setLevel(lv)}
                 className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${level === lv ? 'text-white shadow' : `${dk.subtext} hover:opacity-80`}`}
-                style={level === lv ? { background: 'linear-gradient(135deg,#92400e,#d97706)' } : {}}>
+                style={level === lv ? { background: 'linear-gradient(135deg,#d97706,#fbbf24)' } : {}}>
                 {lv === 'มต้น' ? '🌱 ม.ต้น' : '🌸 ม.ปลาย'}
               </button>
             ))}
@@ -173,7 +173,7 @@ export default function DisplayPage() {
             {([['standings', '📊 อันดับ'], ['tables', '🪑 โต๊ะ'], ['playoff', '🏆 เพลย์ออฟ'], ['awards', '🎖️ รางวัล']] as [View, string][]).map(([v, label]) => (
               <button key={v} onClick={() => { setView(v); setAutoRotate(false) }}
                 className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all ${view === v ? 'text-white shadow' : `${dk.subtext} hover:opacity-80`}`}
-                style={view === v ? { background: 'linear-gradient(135deg,#b45309,#f59e0b)' } : {}}>
+                style={view === v ? { background: 'linear-gradient(135deg,#d97706,#fbbf24)' } : {}}>
                 {label}
               </button>
             ))}
@@ -192,7 +192,7 @@ export default function DisplayPage() {
         {/* Current game badge */}
         {latestGame > 0 && (
           <div className="rounded-2xl p-3 mb-4 text-center text-white font-black text-sm shadow"
-            style={{ background: 'linear-gradient(90deg,#92400e,#d97706)' }}>
+            style={{ background: 'linear-gradient(90deg,#b45309,#f59e0b)' }}>
             ⚡ ขณะนี้อยู่ในเกมที่ {latestGame}
           </div>
         )}
@@ -252,7 +252,7 @@ export default function DisplayPage() {
                     {Object.entries(tablesByNum).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
                       <div key={tn} className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: dk.card, borderColor: dk.border }}>
                         <div className="px-4 py-2.5 text-white font-black text-sm"
-                          style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
+                          style={{ background: 'linear-gradient(135deg,#d97706,#fbbf24)' }}>
                           โต๊ะ {tn}
                         </div>
                         <div className="px-4 py-3 space-y-2">
@@ -293,7 +293,7 @@ export default function DisplayPage() {
                 return (
                   <div key={i} className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: dk.card, borderColor: dk.border }}>
                     <div className="px-4 py-2.5 text-white font-black text-sm"
-                      style={{ background: 'linear-gradient(135deg,#92400e,#d97706)' }}>
+                      style={{ background: 'linear-gradient(135deg,#d97706,#fbbf24)' }}>
                       {p.round} · คู่ {p.pair_no}
                     </div>
                     <div className={`px-4 py-4 flex items-center gap-3 ${sz.tableText}`}>
