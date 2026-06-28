@@ -306,7 +306,9 @@ export default function AdminPage() {
         {/* Level Toggle */}
         <div className="flex bg-white rounded-2xl p-1.5 border-2 border-teal-100 shadow">
           {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
-            <button key={lv} onClick={() => setLevel(lv)} className={`flex-1 py-3 rounded-xl font-bold text-sm transition ${level === lv ? 'bg-teal-500 text-white shadow' : 'text-teal-600'}`}>
+            <button key={lv} onClick={() => setLevel(lv)}
+              className={`flex-1 py-3 rounded-xl font-bold text-sm transition ${level === lv ? 'text-white shadow' : 'text-teal-600'}`}
+              style={level === lv ? { background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' } : {}}>
               {lv === 'มต้น' ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย'}
             </button>
           ))}
@@ -488,7 +490,7 @@ export default function AdminPage() {
                 ? <p className="text-center text-teal-200 py-4 px-5">ยังไม่มีข้อมูล</p>
                 : (
                   <table className="w-full text-xs">
-                    <thead><tr className="text-white" style={{ background: '#A8D5D0' }}>
+                    <thead><tr className="text-white" style={{ background: '#0f766e' }}>
                       <th className="p-2 rounded-l text-center">อันดับ</th>
                       <th className="p-2 text-left">ชื่อ</th>
                       <th className="p-2 text-center">ห้อง</th>
@@ -541,7 +543,7 @@ export default function AdminPage() {
               className="flex-1 px-3 py-2.5 rounded-xl border-2 border-teal-100 bg-teal-50 text-sm font-semibold focus:outline-none focus:border-teal-300" />
             <button type="submit" disabled={!announcement.trim() || announceLoading}
               className="px-4 py-2.5 rounded-xl font-bold text-sm text-white shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 shrink-0"
-              style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
+              style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
               {announceLoading ? '⏳' : '📤 ส่ง'}
             </button>
           </form>
@@ -640,7 +642,7 @@ export default function AdminPage() {
                           ) : (
                             <>
                               <div className="flex-1 min-w-0">
-                                <p className="font-bold text-amber-900 text-sm truncate">{p.name}</p>
+                                <p className="font-bold text-gray-800 text-sm truncate">{p.name}</p>
                                 <p className="text-teal-400 text-xs">{p.room}</p>
                               </div>
                               <button onClick={() => { setEditingPlayer(p); setEditName(p.name); setEditRoom(p.room) }} className="px-2.5 py-1.5 text-xs border border-teal-200 rounded-lg text-teal-600 hover:bg-teal-100 font-bold flex items-center gap-1">✏️ แก้ไข</button>
