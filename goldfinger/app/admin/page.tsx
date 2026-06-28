@@ -3,7 +3,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { useAuth } from '@/lib/useAuth'
 import LoginScreen from '@/components/LoginScreen'
 import { supabase } from '@/lib/supabase'
-import { computeStandings, computeMatchResult, Player, GameRow } from '@/lib/gf-logic'
+import { computeStandings, computeMatchResult, suggestGibsonize, Player, GameRow } from '@/lib/gf-logic'
 import * as XLSX from 'xlsx'
 import QRCode from 'qrcode'
 
@@ -14,6 +14,8 @@ interface Standing {
   player: Player
   points: number
   diffSum: number
+  rawDiffSum: number
+  gamesPlayed: number
   w: number; t: number; l: number
 }
 
@@ -46,6 +48,10 @@ export default function AdminPage() {
   const [importDuplicates, setImportDuplicates] = useState<{ name: string; level: string; room: string }[]>([])
   const [showImportConfirm, setShowImportConfirm] = useState(false)
   const [showStandings, setShowStandings] = useState(false)
+
+  // Gibsonize
+  const [gibsonInput, setGibsonInput] = useState('')
+  const [gibsonSuggest, setGibsonSuggest] = useState<{ number: number; name: string; rank: number; points: number }[] | null>(null)
 
   // Broadcast
   const [announcement, setAnnouncement] = useState('')
@@ -110,7 +116,10 @@ export default function AdminPage() {
 
   async function generateTables(game: number) {
     setLoading(true); setLoadingGame(game); setStatus(null)
-    const res = await fetch('/api/tables', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ level, game }) })
+    const gibsonNumbers = game === totalGames && gibsonInput.trim()
+      ? gibsonInput.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
+      : []
+    const res = await fetch('/api/tables', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ level, game, gibsonNumbers }) })
     const data = await res.json()
     if (!res.ok) { setStatus({ msg: data.error, ok: false }) }
     else { setStatus({ msg: `✅ จัดโต๊ะเกม ${game} เรียบร้อย`, ok: true }); await loadData() }
@@ -415,6 +424,33 @@ export default function AdminPage() {
                 </button>
               )
             })}
+          </div>
+
+          {/* Gibsonize — แสดงเฉพาะเกมสุดท้าย */}
+          <div className="bg-teal-50 rounded-2xl p-4 border border-teal-200 mt-1">
+            <p className="text-xs font-black text-teal-700 mb-1">🎯 Gibsonize — สำหรับเกมสุดท้าย (เกม {totalGames}) เท่านั้น</p>
+            <p className="text-xs text-teal-400 mb-3">ผู้เล่นที่คะแนนลอยลำแน่นอน ไม่ต้องแข่งกันเองอีก</p>
+            <button
+              onClick={() => {
+                const suggested = suggestGibsonize(standings)
+                setGibsonSuggest(suggested.map(s => ({ number: s.player.number, name: s.player.name, rank: s.rank, points: s.points })))
+                if (suggested.length > 0) setGibsonInput(suggested.map(s => s.player.number).join(','))
+              }}
+              className="w-full text-xs font-bold px-3 py-2 rounded-xl bg-white border border-teal-300 text-teal-700 hover:bg-teal-50 transition mb-2">
+              🔍 ให้ระบบแนะนำอัตโนมัติ
+            </button>
+            {gibsonSuggest !== null && (
+              <div className="mb-2 text-xs text-teal-700 bg-white rounded-xl p-2 border border-teal-100">
+                {gibsonSuggest.length === 0
+                  ? '✅ ยังไม่มีใครลอยลำ'
+                  : gibsonSuggest.map(s => <div key={s.number}>อันดับ {s.rank} — {s.name} (#{s.number}, {s.points} แต้ม)</div>)}
+              </div>
+            )}
+            <input
+              type="text" value={gibsonInput} onChange={e => setGibsonInput(e.target.value)}
+              placeholder="หมายเลขนักเรียน คั่นด้วยจุลภาค เช่น 4,7"
+              className="w-full px-3 py-2 rounded-xl border border-teal-200 bg-white text-sm focus:outline-none focus:border-teal-400"
+            />
           </div>
 
           {/* แสดงโต๊ะของเกมล่าสุด */}

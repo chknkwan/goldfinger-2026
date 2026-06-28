@@ -232,3 +232,67 @@ export function generateSwiss(standings: Standing[]): TableDef[] {
   const players = groups.flatMap(g => shuffle(g).map(s => s.player))
   return splitIntoTables(players)
 }
+
+// ============================================================
+//  Swiss + Gibsonize (เกมสุดท้าย)
+//  gibsonIds = Set ของ player.id ที่ล็อคอันดับแน่แล้ว
+//  → กระจาย Gibson players ไว้คนละโต๊ะ ไม่จับคู่กันเอง
+// ============================================================
+export function generateSwissWithGibson(standings: Standing[], gibsonIds: Set<number>): TableDef[] {
+  if (gibsonIds.size === 0) return generateSwiss(standings)
+
+  const ordered = [...standings].sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points
+    if (b.diffSum !== a.diffSum) return b.diffSum - a.diffSum
+    return b.rawDiffSum - a.rawDiffSum
+  })
+  // shuffle within tied groups
+  const groups: Standing[][] = []
+  let i = 0
+  while (i < ordered.length) {
+    let j = i + 1
+    while (j < ordered.length &&
+      ordered[j].points === ordered[i].points &&
+      ordered[j].diffSum === ordered[i].diffSum &&
+      ordered[j].rawDiffSum === ordered[i].rawDiffSum) j++
+    groups.push(ordered.slice(i, j))
+    i = j
+  }
+  const swissOrder = groups.flatMap(g => shuffle(g).map(s => s.player))
+
+  const gibson = swissOrder.filter(p => gibsonIds.has(p.id))
+  const normal = swissOrder.filter(p => !gibsonIds.has(p.id))
+
+  // วาง Gibson player คนละโต๊ะ: ตำแหน่ง 0, 4, 8, ...
+  const result: Player[] = []
+  let gi = 0, ni = 0
+  const tableCount = Math.ceil(swissOrder.length / 4)
+
+  for (let t = 0; t < tableCount; t++) {
+    const slots = Math.min(4, swissOrder.length - t * 4)
+    if (gi < gibson.length) {
+      result.push(gibson[gi++])
+      for (let s = 1; s < slots && ni < normal.length; s++) result.push(normal[ni++])
+    } else {
+      for (let s = 0; s < slots && ni < normal.length; s++) result.push(normal[ni++])
+    }
+  }
+  // เติมที่เหลือ (ถ้ามี gibson มากกว่าจำนวนโต๊ะ)
+  while (gi < gibson.length) result.push(gibson[gi++])
+  while (ni < normal.length) result.push(normal[ni++])
+
+  return splitIntoTables(result)
+}
+
+// ============================================================
+//  แนะนำ Gibsonize อัตโนมัติ
+//  ผู้เล่นที่ล็อคอันดับแน่ถ้า gap > 2 (max pts/game) กับคนถัดไป
+// ============================================================
+export function suggestGibsonize(standings: Standing[]): Standing[] {
+  const maxGainPerGame = 2
+  return standings.filter((s, idx) => {
+    if (idx === standings.length - 1) return false
+    const next = standings[idx + 1]
+    return s.points - next.points > maxGainPerGame
+  })
+}

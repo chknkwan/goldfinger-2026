@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
 import {
-  generateGame1, generateCrossover, generateSwiss,
+  generateGame1, generateCrossover, generateSwiss, generateSwissWithGibson,
   computeStandings, TableDef, Player, GameRow
 } from '@/lib/gf-logic'
 
@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { level, game } = body as { level: string; game: number }
+  const { level, game, gibsonNumbers } = body as { level: string; game: number; gibsonNumbers?: number[] }
 
   const { data: playersData } = await supabase.from('players').select('*').eq('level', level).order('number')
   const players = (playersData || []) as Player[]
@@ -80,7 +80,12 @@ export async function POST(req: NextRequest) {
     const prevGames = Array.from({ length: game - 1 }, (_, i) => i + 1)
     const { data: allScores } = await supabase.from('games').select('*').eq('level', level).in('game', prevGames)
     const standings = computeStandings(players, (allScores || []) as GameRow[])
-    tables = generateSwiss(standings)
+    if (gibsonNumbers && gibsonNumbers.length > 0) {
+      const gibsonIds = new Set(players.filter(p => gibsonNumbers.includes(p.number)).map(p => p.id))
+      tables = generateSwissWithGibson(standings, gibsonIds)
+    } else {
+      tables = generateSwiss(standings)
+    }
   }
 
   // บันทึกลง DB
