@@ -84,6 +84,9 @@ export default function LoginScreen({ role = 'admin', onLogin }: Props) {
               {loading ? '⏳ กำลังตรวจสอบ...' : 'เข้าสู่ระบบ'}
             </button>
           </form>
+          <p className={`text-center text-xs ${cfg.sub} mt-5 font-semibold`}>
+            {schoolName}
+          </p>
         </div>
       </div>
     </div>
