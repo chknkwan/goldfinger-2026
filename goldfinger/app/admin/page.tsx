@@ -398,7 +398,7 @@ export default function AdminPage() {
               const label = g === 1 ? 'Random' : g % 2 === 0 ? 'ไขว้' : 'Swiss'
               return (
                 <button key={g} onClick={() => generateTables(g)} disabled={loading}
-                  className={`relative py-4 px-3 rounded-2xl font-bold text-sm border-2 transition text-left shadow-sm
+                  className={`relative py-4 px-3 rounded-2xl font-bold text-sm border-2 transition text-center shadow-sm
                     ${done ? 'bg-green-50 border-green-400 text-green-800'
                     : hasTable && !done ? 'bg-teal-50 border-teal-300 text-teal-700'
                     : locked ? 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
