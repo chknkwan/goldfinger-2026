@@ -1,6 +1,7 @@
 import Link from 'next/link'
 
 export default function Home() {
+  const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || ''
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: '#fffbeb' }}>
       <div className="text-center mb-10">
@@ -10,6 +11,7 @@ export default function Home() {
           Goldfinger
         </h1>
         <p className="text-amber-400 font-semibold text-xs mt-1">Gold Finger (เกมตึกถล่ม)</p>
+        {schoolName && <p className="text-amber-300 font-medium text-xs mt-0.5">{schoolName}</p>}
       </div>
 
       <div className="w-full max-w-sm space-y-4">
