@@ -292,19 +292,17 @@ export default function AdminPage() {
   }
 
   async function resetResults() {
-    if (!confirm('รีเซ็ตผลการแข่งขันทั้งหมด? (รายชื่อนักเรียนยังอยู่)\nระบบจะ Backup ให้อัตโนมัติก่อน')) return
-    await downloadBackup()
+    if (!confirm('รีเซ็ตผลการแข่งขันทั้งหมด? (รายชื่อนักเรียนยังอยู่)')) return
     await fetch('/api/backup?mode=results', { method: 'DELETE' })
-    setStatus({ msg: '✅ รีเซ็ตผลการแข่งขันแล้ว (Backup ถูกดาวน์โหลดก่อน)', ok: true })
+    setStatus({ msg: '✅ รีเซ็ตผลการแข่งขันแล้ว', ok: true })
     await loadData()
   }
 
   async function resetAll() {
-    if (!confirm('⚠️ ลบข้อมูลทั้งหมด รวมรายชื่อนักเรียน?\nระบบจะ Backup ให้อัตโนมัติก่อน')) return
-    if (!confirm('กด OK อีกครั้งเพื่อยืนยัน — ข้อมูลจะหายทั้งหมด')) return
-    await downloadBackup()
+    if (!confirm('⚠️ ลบข้อมูลทั้งหมด รวมรายชื่อนักเรียน?\nไม่สามารถกู้คืนได้!')) return
+    if (!confirm('กด OK อีกครั้งเพื่อยืนยัน')) return
     await fetch('/api/backup?mode=all', { method: 'DELETE' })
-    setStatus({ msg: '✅ รีเซ็ตข้อมูลทั้งหมดแล้ว (Backup ถูกดาวน์โหลดก่อน)', ok: true })
+    setStatus({ msg: '✅ รีเซ็ตข้อมูลทั้งหมดแล้ว', ok: true })
     await loadData()
   }
 
