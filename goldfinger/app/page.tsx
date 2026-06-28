@@ -1,9 +1,6 @@
 import Link from 'next/link'
 
 export default function Home() {
-  const eventName = process.env.NEXT_PUBLIC_EVENT_NAME || 'Goldfinger'
-  const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || ''
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: '#fffbeb' }}>
       <div className="text-center mb-10">
@@ -12,8 +9,7 @@ export default function Home() {
           style={{ backgroundImage: 'linear-gradient(135deg,#92400e,#d97706)', fontFamily: "'Nunito',sans-serif" }}>
           Goldfinger
         </h1>
-        <p className="text-amber-500 font-semibold mt-1 text-sm">{eventName}</p>
-        <p className="text-amber-400 font-semibold text-xs mt-0.5">{schoolName}</p>
+        <p className="text-amber-400 font-semibold text-xs mt-1">ระบบจัดการแข่งขันคณิตศาสตร์</p>
       </div>
 
       <div className="w-full max-w-sm space-y-4">
@@ -57,7 +53,10 @@ export default function Home() {
         </Link>
       </div>
 
-      <p className="mt-10 text-xs text-amber-400 font-semibold">🥇 Goldfinger Scoring System</p>
+      <div className="mt-10 text-center space-y-1">
+        <p className="text-xs text-amber-400 font-semibold">🥇 Goldfinger Scoring System</p>
+        <p className="text-xs text-amber-300 font-medium">พัฒนาโดย นางสาวชัญญ์คนันท์ รชตะฤทธิ์เสือ</p>
+      </div>
     </div>
   )
 }
