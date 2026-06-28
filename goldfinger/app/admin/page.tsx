@@ -271,9 +271,26 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen pb-20">
+      {/* Sticky tab bar — top of page */}
+      <div className="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-teal-100 shadow-sm">
+        <div className="max-w-2xl mx-auto flex items-center gap-1 px-3 py-2 overflow-x-auto">
+          {[
+            { label: '🎮 คัดเลือก', id: 'section-prelim' },
+            { label: '🏆 เพลย์ออฟ', id: 'section-playoff' },
+            { label: '📊 อันดับ', id: 'section-standings' },
+            { label: '👥 จัดการ', id: 'section-manage' },
+          ].map(tab => (
+            <button key={tab.id} onClick={() => scrollTo(tab.id)}
+              className="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black text-teal-700 hover:bg-teal-100 transition">
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Header */}
-      <div className="p-4 pb-0">
-        <div className="max-w-2xl mx-auto mb-4 rounded-3xl p-6 text-center shadow-xl"
+      <div className="max-w-2xl mx-auto px-4 pt-5">
+        <div className="rounded-3xl p-6 text-center shadow-xl mb-4"
           style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
           <h1 style={{ fontFamily: "'Nunito',sans-serif" }} className="text-2xl font-black text-white">🏅 แผงแอดมิน Gold Finger</h1>
           <p className="text-teal-100 text-sm font-semibold mt-1">{process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
@@ -285,24 +302,7 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Sticky tab bar */}
-      <div className="sticky top-0 z-50 bg-teal-50 border-b-2 border-teal-100 shadow-sm">
-        <div className="max-w-2xl mx-auto flex">
-          {[
-            { label: '🎮 คัดเลือก', id: 'section-prelim' },
-            { label: '🏆 เพลย์ออฟ', id: 'section-playoff' },
-            { label: '📊 อันดับ', id: 'section-standings' },
-            { label: '👥 จัดการ', id: 'section-manage' },
-          ].map(tab => (
-            <button key={tab.id} onClick={() => scrollTo(tab.id)}
-              className="flex-1 py-3 text-xs font-black text-teal-700 hover:bg-teal-100 transition border-r last:border-r-0 border-teal-100">
-              {tab.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="max-w-2xl mx-auto p-4 space-y-5">
+      <div className="max-w-2xl mx-auto px-4 pb-4 space-y-5">
         {/* Level Toggle */}
         <div className="flex bg-white rounded-2xl p-1.5 border-2 border-teal-100 shadow">
           {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
@@ -353,7 +353,7 @@ export default function AdminPage() {
           </div>
 
           {/* Game cards */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-3 gap-2.5">
             {Array.from({ length: totalGames }, (_, i) => i + 1).map(g => {
               const done = isGameDone(g)
               const hasTable = !!(tables[g] && tables[g].length > 0)
