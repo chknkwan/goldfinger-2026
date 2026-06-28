@@ -274,9 +274,9 @@ export default function AdminPage() {
       {/* Header */}
       <div className="p-4 pb-0">
         <div className="max-w-2xl mx-auto mb-4 rounded-3xl p-6 text-center shadow-xl"
-          style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
-          <h1 style={{ fontFamily: "'Nunito',sans-serif" }} className="text-2xl font-black text-white">🥇 แผงแอดมิน Goldfinger</h1>
-          <p className="text-yellow-200 text-sm font-bold mt-1">{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
+          style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
+          <h1 style={{ fontFamily: "'Nunito',sans-serif" }} className="text-2xl font-black text-white">🏅 แผงแอดมิน Gold Finger</h1>
+          <p className="text-teal-100 text-sm font-semibold mt-1">{process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
           <div className="flex justify-center gap-3 mt-4 flex-wrap">
             <a href="/display" target="_blank" className="px-4 py-2 bg-white/20 rounded-xl text-white font-bold text-sm hover:bg-white/30 transition">🖥️ กระดานคะแนน</a>
             <a href="/scoring" target="_blank" className="px-4 py-2 bg-white/20 rounded-xl text-white font-bold text-sm hover:bg-white/30 transition">✍️ กรอกคะแนน</a>
