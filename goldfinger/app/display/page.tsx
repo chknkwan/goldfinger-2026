@@ -25,7 +25,9 @@ export default function DisplayPage() {
   const [clock, setClock] = useState('')
   const [announcement, setAnnouncement] = useState<string | null>(null)
   const [scoredSet, setScoredSet] = useState<Set<string>>(new Set())
+  const [reconnectKey, setReconnectKey] = useState(0)
   const realtimeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const views: View[] = ['standings', 'tables', 'playoff', 'awards']
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export default function DisplayPage() {
 
   useEffect(() => {
     loadAll()
-    const ch = supabase.channel(`display-${level}`)
+    const ch = supabase.channel(`display-${level}-${reconnectKey}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'games', filter: `level=eq.${level}` }, loadAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'table_assignments', filter: `level=eq.${level}` }, loadAll)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'playoffs', filter: `level=eq.${level}` }, loadAll)
@@ -82,11 +84,22 @@ export default function DisplayPage() {
         }
       })
       .subscribe(status => {
-        if (status === 'SUBSCRIBED') setRealtimeOk(true)
-        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setRealtimeOk(false)
+        if (status === 'SUBSCRIBED') {
+          setRealtimeOk(true)
+          if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
+        }
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setRealtimeOk(false)
+          // auto-reconnect after 10 seconds
+          reconnectTimer.current = setTimeout(() => setReconnectKey(k => k + 1), 10000)
+        }
       })
-    return () => { supabase.removeChannel(ch); if (realtimeTimer.current) clearTimeout(realtimeTimer.current) }
-  }, [level, loadAll])
+    return () => {
+      supabase.removeChannel(ch)
+      if (realtimeTimer.current) clearTimeout(realtimeTimer.current)
+      if (reconnectTimer.current) clearTimeout(reconnectTimer.current)
+    }
+  }, [level, loadAll, reconnectKey])
 
   function getAwards() {
     const pfFinal = playoffs.find(p => p.round === 'ชิงชนะเลิศ')
@@ -150,9 +163,9 @@ export default function DisplayPage() {
       </div>
 
       {!realtimeOk && (
-        <div className="mx-4 mb-3 rounded-2xl p-3 bg-red-100 border-2 border-red-300 text-red-700 font-bold text-sm text-center flex items-center justify-center gap-2">
-          ⚠️ การเชื่อมต่อ Realtime หลุด
-          <button onClick={loadAll} className="ml-2 px-3 py-1 bg-red-600 text-white rounded-xl text-xs font-bold">โหลดใหม่</button>
+        <div className="mx-4 mb-3 rounded-2xl p-3 bg-red-100 border-2 border-red-300 text-red-700 font-bold text-sm text-center flex items-center justify-center gap-2 flex-wrap">
+          ⚠️ การเชื่อมต่อหลุด — กำลัง reconnect อัตโนมัติ...
+          <button onClick={() => setReconnectKey(k => k + 1)} className="px-3 py-1 bg-red-600 text-white rounded-xl text-xs font-bold">reconnect เดี๋ยวนี้</button>
         </div>
       )}
 

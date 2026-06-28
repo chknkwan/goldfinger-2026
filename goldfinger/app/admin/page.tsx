@@ -292,17 +292,19 @@ export default function AdminPage() {
   }
 
   async function resetResults() {
-    if (!confirm('รีเซ็ตผลการแข่งขันทั้งหมด? (รายชื่อนักเรียนยังอยู่)')) return
+    if (!confirm('รีเซ็ตผลการแข่งขันทั้งหมด? (รายชื่อนักเรียนยังอยู่)\nระบบจะ Backup ให้อัตโนมัติก่อน')) return
+    await downloadBackup()
     await fetch('/api/backup?mode=results', { method: 'DELETE' })
-    setStatus({ msg: '✅ รีเซ็ตผลการแข่งขันแล้ว', ok: true })
+    setStatus({ msg: '✅ รีเซ็ตผลการแข่งขันแล้ว (Backup ถูกดาวน์โหลดก่อน)', ok: true })
     await loadData()
   }
 
   async function resetAll() {
-    if (!confirm('⚠️ ลบข้อมูลทั้งหมด รวมรายชื่อนักเรียน?\nไม่สามารถกู้คืนได้!')) return
-    if (!confirm('กด OK อีกครั้งเพื่อยืนยัน')) return
+    if (!confirm('⚠️ ลบข้อมูลทั้งหมด รวมรายชื่อนักเรียน?\nระบบจะ Backup ให้อัตโนมัติก่อน')) return
+    if (!confirm('กด OK อีกครั้งเพื่อยืนยัน — ข้อมูลจะหายทั้งหมด')) return
+    await downloadBackup()
     await fetch('/api/backup?mode=all', { method: 'DELETE' })
-    setStatus({ msg: '✅ รีเซ็ตข้อมูลทั้งหมดแล้ว', ok: true })
+    setStatus({ msg: '✅ รีเซ็ตข้อมูลทั้งหมดแล้ว (Backup ถูกดาวน์โหลดก่อน)', ok: true })
     await loadData()
   }
 
@@ -426,8 +428,8 @@ export default function AdminPage() {
             })}
           </div>
 
-          {/* Gibsonize — แสดงเฉพาะเกมสุดท้าย */}
-          <div className="bg-teal-50 rounded-2xl p-4 border border-teal-200 mt-1">
+          {/* Gibsonize — แสดงเฉพาะเกมสุดท้ายที่เป็นเลขคี่ (Swiss) */}
+          {totalGames % 2 !== 0 && <div className="bg-teal-50 rounded-2xl p-4 border border-teal-200 mt-1">
             <p className="text-xs font-black text-teal-700 mb-1">🎯 Gibsonize — สำหรับเกมสุดท้าย (เกม {totalGames}) เท่านั้น</p>
             <p className="text-xs text-teal-400 mb-3">ผู้เล่นที่คะแนนลอยลำแน่นอน ไม่ต้องแข่งกันเองอีก</p>
             <button
@@ -451,7 +453,7 @@ export default function AdminPage() {
               placeholder="หมายเลขนักเรียน คั่นด้วยจุลภาค เช่น 4,7"
               className="w-full px-3 py-2 rounded-xl border border-teal-200 bg-white text-sm focus:outline-none focus:border-teal-400"
             />
-          </div>
+          </div>}
 
           {/* แสดงโต๊ะของเกมล่าสุด */}
           {latestGame > 0 && tables[latestGame] && tables[latestGame].length > 0 && (() => {

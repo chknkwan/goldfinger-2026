@@ -173,6 +173,10 @@ export default function ScoringPage() {
   async function submitResult(e: React.FormEvent) {
     e.preventDefault()
     if (!scoreA || !scoreB) { alert('กรุณากรอกคะแนนทั้งสองฝั่ง'); return }
+    // เตือนถ้าเสมอ
+    if (Number(scoreA) === Number(scoreB)) {
+      if (!confirm(`⚠️ คะแนนเท่ากัน ${scoreA} – ${scoreB} (เสมอ)\nยืนยันบันทึกผลเสมอหรือไม่?`)) return
+    }
     await doSubmit(false)
   }
 
@@ -262,6 +266,13 @@ export default function ScoringPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Warning: กรอกย้อนหลัง */}
+              {game < latestGame && (
+                <div className="rounded-xl p-3 bg-amber-50 border-2 border-amber-300 text-amber-800 text-xs font-bold">
+                  ⚠️ คุณกำลังกรอกเกม {game} แต่จัดโต๊ะเกม {latestGame} แล้ว — อันดับอาจถูกคำนวณผิดพลาด
+                </div>
+              )}
 
               {/* Table input */}
               <div>
