@@ -421,17 +421,18 @@ export default function AdminPage() {
 
                 {/* Missing tables warning card */}
                 {missingTables.length > 0 && (
-                  <div className="bg-teal-50 border border-teal-200 rounded-xl p-3">
-                    <p className="text-xs font-bold text-yellow-800 mb-2">
+                  <div className="bg-amber-50 border-2 border-amber-300 rounded-2xl p-4">
+                    <p className="text-sm font-black text-amber-800 mb-2">
                       ⏳ เกม {latestGame} ยังกรอกไม่ครบ — เหลือ {missingTables.length} โต๊ะ
                     </p>
                     <div className="flex flex-wrap gap-1.5">
                       {missingTables.map(sub => (
-                        <span key={sub} className="px-2 py-0.5 bg-yellow-200 text-yellow-900 text-xs font-bold rounded-full">
+                        <span key={sub} className="px-2.5 py-1 bg-amber-200 text-amber-900 text-xs font-black rounded-lg">
                           โต๊ะ {sub}
                         </span>
                       ))}
                     </div>
+                    <p className="text-xs text-amber-600 mt-2 font-semibold">กรอกผลให้ครบก่อนจึงจะสามารถจัดโต๊ะเกม {latestGame + 1} ได้</p>
                   </div>
                 )}
 
@@ -441,16 +442,19 @@ export default function AdminPage() {
                   <button onClick={() => window.print()} className="px-3 py-1 rounded-lg border border-teal-300 text-teal-600 text-xs font-bold hover:bg-teal-50">🖨️ พิมพ์ใบปะหน้า</button>
                 </div>
                 {Object.entries(byTable).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
-                  <div key={tn} className="bg-teal-50 rounded-xl p-3 border border-teal-100 text-sm">
-                    <span className="font-black text-teal-700 mr-2">โต๊ะ {tn}</span>
-                    {rows.map(r => (
-                      <span key={r.sub_table} className="mr-3">
-                        <strong>{r.sub_table.slice(-1)}:</strong>{' '}
-                        {r.is_bye
-                          ? `🎁 ${r.player1?.name} (bye)`
-                          : `${r.player1?.name} vs ${r.player2?.name}`}
-                      </span>
-                    ))}
+                  <div key={tn} className="flex gap-3 items-start bg-teal-50 rounded-2xl px-4 py-3 mb-2 border border-teal-100">
+                    <div className="font-black text-teal-700 text-sm min-w-[56px]">โต๊ะ {tn}</div>
+                    <div className="flex-1 text-sm space-y-0.5">
+                      {rows.map(r => (
+                        <div key={r.sub_table}>
+                          <span className="font-black text-teal-500">{r.sub_table.slice(-1)}:</span>{' '}
+                          {r.is_bye
+                            ? <span className="text-blue-600">🎁 {r.player1?.name} <span className="text-teal-400">(#{r.player1?.number})</span> ได้ bye</span>
+                            : <span>{r.player1?.name} <span className="text-teal-400">(#{r.player1?.number})</span> <strong className="text-teal-600 mx-1">VS</strong> {r.player2?.name} <span className="text-teal-400">(#{r.player2?.number})</span></span>
+                          }
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ))}
               </div>
