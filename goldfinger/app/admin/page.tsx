@@ -716,42 +716,45 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* รายชื่อ */}
-              {(['มต้น', 'มปลาย'] as Level[]).map(lv => {
-                const lvPlayers = allPlayers.filter(p => p.level === lv)
-                if (!lvPlayers.length) return null
+              {/* รายชื่อ — แสดงเฉพาะ level ที่เลือก */}
+              {(() => {
+                const lvPlayers = allPlayers.filter(p => p.level === newLevel)
                 return (
-                  <div key={lv} className="border-t pt-4">
-                    <p className="font-bold text-teal-700 text-sm mb-2">
-                      👤 รายชื่อผู้เล่น {lv === 'มต้น' ? 'ม.ต้น' : 'ม.ปลาย'} ({lvPlayers.length} คน)
+                  <div className="border-t pt-4">
+                    <p className="text-xs font-bold text-teal-700 mb-2">
+                      👤 รายชื่อผู้เล่น {newLevel === 'มต้น' ? 'ม.ต้น' : 'ม.ปลาย'} ({lvPlayers.length} คน)
                     </p>
-                    <div className="overflow-y-auto rounded-xl border border-teal-100 space-y-1.5 p-2" style={{ maxHeight: 320 }}>
-                      {lvPlayers.map(p => (
-                        <div key={p.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-xl px-3 py-2.5 border border-yellow-100">
-                          <span className="font-black text-teal-400 w-7 text-center text-xs">#{p.number}</span>
-                          {editingPlayer?.id === p.id ? (
-                            <>
-                              <input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 px-2 py-1 border border-teal-200 rounded-lg text-sm" />
-                              <input value={editRoom} onChange={e => setEditRoom(e.target.value)} className="w-20 px-2 py-1 border border-teal-200 rounded-lg text-sm" />
-                              <button onClick={saveEdit} className="px-2 py-1 bg-green-600 text-white rounded-lg text-xs font-bold">บันทึก</button>
-                              <button onClick={() => setEditingPlayer(null)} className="px-2 py-1 bg-gray-300 rounded-lg text-xs">ยกเลิก</button>
-                            </>
-                          ) : (
-                            <>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-bold text-gray-800 text-sm truncate">{p.name}</p>
-                                <p className="text-teal-400 text-xs">{p.room}</p>
-                              </div>
-                              <button onClick={() => { setEditingPlayer(p); setEditName(p.name); setEditRoom(p.room) }} className="px-2.5 py-1.5 text-xs border border-teal-200 rounded-lg text-teal-600 hover:bg-teal-100 font-bold flex items-center gap-1">✏️ แก้ไข</button>
-                              <button onClick={() => deletePlayer(p)} className="px-2 py-1.5 text-xs border border-red-200 rounded-lg text-red-400 hover:bg-red-50">🗑️</button>
-                            </>
-                          )}
+                    {lvPlayers.length === 0
+                      ? <p className="text-xs text-teal-300 text-center py-4">ยังไม่มีผู้เล่น</p>
+                      : (
+                        <div className="overflow-y-auto rounded-xl border border-teal-100 space-y-1.5 p-2" style={{ maxHeight: 320 }}>
+                          {lvPlayers.map(p => (
+                            <div key={p.id} className="flex items-center gap-2 text-sm bg-teal-50 rounded-xl px-3 py-2.5 border border-teal-100">
+                              <span className="font-black text-teal-400 w-7 text-center text-xs">#{p.number}</span>
+                              {editingPlayer?.id === p.id ? (
+                                <>
+                                  <input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 px-2 py-1 border border-teal-200 rounded-lg text-sm" />
+                                  <input value={editRoom} onChange={e => setEditRoom(e.target.value)} className="w-20 px-2 py-1 border border-teal-200 rounded-lg text-sm" />
+                                  <button onClick={saveEdit} className="px-2 py-1 bg-green-600 text-white rounded-lg text-xs font-bold">บันทึก</button>
+                                  <button onClick={() => setEditingPlayer(null)} className="px-2 py-1 bg-gray-300 rounded-lg text-xs">ยกเลิก</button>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="flex-1 min-w-0">
+                                    <p className="font-bold text-gray-800 text-sm truncate">{p.name}</p>
+                                    <p className="text-teal-400 text-xs">{p.room}</p>
+                                  </div>
+                                  <button onClick={() => { setEditingPlayer(p); setEditName(p.name); setEditRoom(p.room) }} className="px-2.5 py-1.5 text-xs border border-teal-200 rounded-lg text-teal-600 hover:bg-teal-100 font-bold">✏️ แก้ไข</button>
+                                  <button onClick={() => deletePlayer(p)} className="px-2 py-1.5 text-xs border border-red-200 rounded-lg text-red-400 hover:bg-red-50">🗑️</button>
+                                </>
+                              )}
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      )}
                   </div>
                 )
-              })}
+              })()}
             </div>
           )}
         </div>
