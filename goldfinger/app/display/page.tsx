@@ -113,7 +113,7 @@ export default function DisplayPage() {
 
   const sz = projector
     ? { name: 'text-xl', stat: 'text-lg', pts: 'text-2xl', cell: 'p-4', header: 'text-lg', tableText: 'text-lg', award: 'text-7xl', awardName: 'text-3xl', awardSub: 'text-base' }
-    : { name: 'text-sm', stat: 'text-sm', pts: 'text-base', cell: 'p-3', header: 'text-sm', tableText: 'text-sm', award: 'text-5xl', awardName: 'text-xl', awardSub: 'text-sm' }
+    : { name: 'text-base', stat: 'text-sm', pts: 'text-lg', cell: 'p-3', header: 'text-sm', tableText: 'text-base', award: 'text-5xl', awardName: 'text-xl', awardSub: 'text-sm' }
 
   const dk = dark
     ? { bg: '#1c1410', card: '#292015', border: '#4a3820', text: 'text-amber-100', subtext: 'text-amber-400', thead: '#92400e', rowEven: 'bg-amber-950/20', tableBg: 'bg-amber-950/30' }
