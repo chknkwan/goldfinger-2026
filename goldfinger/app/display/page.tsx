@@ -117,13 +117,13 @@ export default function DisplayPage() {
 
   const dk = dark
     ? { bg: '#1c1410', card: '#292015', border: '#4a3820', text: 'text-amber-100', subtext: 'text-amber-400', thead: '#92400e', rowEven: 'bg-amber-950/20', tableBg: 'bg-amber-950/30' }
-    : { bg: '#FEFAF2', card: 'white', border: '#f5e8e8', text: 'text-gray-900', subtext: 'text-pink-400', thead: '#F98B8B', rowEven: 'bg-pink-50/30', tableBg: 'bg-pink-50' }
+    : { bg: '#FEFAF2', card: 'white', border: '#f5e8e8', text: 'text-gray-900', subtext: 'text-teal-400', thead: '#A8D5D0', rowEven: 'bg-teal-50/30', tableBg: 'bg-teal-50' }
 
   return (
     <div className="min-h-screen pb-16 transition-colors duration-300" style={{ background: dk.bg }}>
       {/* Header */}
-      <div className="rounded-b-3xl p-5 text-center text-white shadow-xl mb-4"
-        style={{ background: 'linear-gradient(135deg,#b45309,#fbbf24)' }}>
+      <div className="rounded-b-3xl p-5 text-center shadow-xl mb-4"
+        style={{ background: 'linear-gradient(135deg,#6db8b2,#A8D5D0)', color: '#1a4a47' }}>
         <div className="flex items-center justify-between mb-2">
           <span className="font-black text-yellow-100 tabular-nums text-sm w-24 text-left">{clock}</span>
           <h1 className="font-black text-xl flex-1" style={{ fontFamily: "'Nunito',sans-serif" }}>🏅 Gold Finger</h1>
@@ -163,7 +163,7 @@ export default function DisplayPage() {
             {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
               <button key={lv} onClick={() => setLevel(lv)}
                 className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${level === lv ? 'text-white shadow' : `${dk.subtext} hover:opacity-80`}`}
-                style={level === lv ? { background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' } : {}}>
+                style={level === lv ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
                 {lv === 'มต้น' ? '🌱 ม.ต้น' : '🌸 ม.ปลาย'}
               </button>
             ))}
@@ -173,7 +173,7 @@ export default function DisplayPage() {
             {([['standings', '📊 อันดับ'], ['tables', '🪑 โต๊ะ'], ['playoff', '🏆 เพลย์ออฟ'], ['awards', '🎖️ รางวัล']] as [View, string][]).map(([v, label]) => (
               <button key={v} onClick={() => { setView(v); setAutoRotate(false) }}
                 className={`flex-1 py-2 rounded-xl font-bold text-xs transition-all ${view === v ? 'text-white shadow' : `${dk.subtext} hover:opacity-80`}`}
-                style={view === v ? { background: '#A8D5D0' } : {}}>
+                style={view === v ? { background: '#F98B8B' } : {}}>
                 {label}
               </button>
             ))}
@@ -192,7 +192,7 @@ export default function DisplayPage() {
         {/* Current game badge */}
         {latestGame > 0 && (
           <div className="rounded-2xl p-3 mb-4 text-center text-white font-black text-sm shadow"
-            style={{ background: 'linear-gradient(90deg,#F98B8B,#FDBBBB)' }}>
+            style={{ background: 'linear-gradient(90deg,#A8D5D0,#c9ecea)' }}>
             ⚡ ขณะนี้อยู่ในเกมที่ {latestGame}
           </div>
         )}
@@ -252,7 +252,7 @@ export default function DisplayPage() {
                     {Object.entries(tablesByNum).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
                       <div key={tn} className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: dk.card, borderColor: dk.border }}>
                         <div className="px-4 py-2.5 text-white font-black text-sm"
-                          style={{ background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' }}>
+                          style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
                           โต๊ะ {tn}
                         </div>
                         <div className="px-4 py-3 space-y-2">
@@ -293,7 +293,7 @@ export default function DisplayPage() {
                 return (
                   <div key={i} className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: dk.card, borderColor: dk.border }}>
                     <div className="px-4 py-2.5 text-white font-black text-sm"
-                      style={{ background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' }}>
+                      style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
                       {p.round} · คู่ {p.pair_no}
                     </div>
                     <div className={`px-4 py-4 flex items-center gap-3 ${sz.tableText}`}>

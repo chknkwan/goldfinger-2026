@@ -214,7 +214,7 @@ export default function ScoringPage() {
     <div className="min-h-screen flex flex-col items-center p-4 pb-10" style={{ background: '#FEFAF2' }}>
       {/* Header */}
       <div className="w-full max-w-md rounded-3xl p-5 text-center text-white mb-4 shadow-xl"
-        style={{ background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' }}>
+        style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
         <div className="text-3xl mb-1">✍️</div>
         <h1 className="text-xl font-black" style={{ fontFamily: "'Nunito',sans-serif" }}>กรอกผลแมตช์</h1>
         <p className="text-yellow-200 text-xs mt-1 font-semibold">{process.env.NEXT_PUBLIC_EVENT_NAME} • {process.env.NEXT_PUBLIC_SCHOOL_NAME}</p>
@@ -222,39 +222,39 @@ export default function ScoringPage() {
 
       <div className="w-full max-w-md space-y-3">
         {/* Level toggle */}
-        <div className="flex bg-white rounded-2xl p-1.5 border-2 border-pink-100 shadow-sm">
+        <div className="flex bg-white rounded-2xl p-1.5 border-2 border-teal-100 shadow-sm">
           {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
             <button key={lv} onClick={() => { setLevel(lv); clearForm(); setUserPickedGame(false) }}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${level === lv ? 'text-white shadow' : 'text-pink-600 hover:text-pink-800'}`}
-              style={level === lv ? { background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' } : {}}>
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${level === lv ? 'text-white shadow' : 'text-teal-600 hover:text-teal-800'}`}
+              style={level === lv ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
               {lv === 'มต้น' ? 'ม.ต้น' : 'ม.ปลาย'}
             </button>
           ))}
         </div>
 
         {/* Mode toggle */}
-        <div className="flex bg-white rounded-2xl p-1.5 border-2 border-pink-100 shadow-sm">
+        <div className="flex bg-white rounded-2xl p-1.5 border-2 border-teal-100 shadow-sm">
           {([['qualify', '🎮 รอบคัดเลือก'], ['playoff', '🏆 รอบเพลย์ออฟ']] as [Mode, string][]).map(([m, label]) => (
             <button key={m} onClick={() => { setMode(m as Mode); clearForm() }}
-              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${mode === m ? 'text-white shadow' : 'text-pink-600'}`}
-              style={mode === m ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
+              className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${mode === m ? 'text-white shadow' : 'text-teal-600'}`}
+              style={mode === m ? { background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' } : {}}>
               {label}
             </button>
           ))}
         </div>
 
-        <form onSubmit={submitResult} className="bg-white rounded-3xl p-5 shadow-sm border border-pink-100 space-y-4">
+        <form onSubmit={submitResult} className="bg-white rounded-3xl p-5 shadow-sm border border-teal-100 space-y-4">
           {mode === 'qualify' && (
             <>
               {/* Game pills */}
               <div>
-                <label className="block text-xs font-bold text-pink-700 mb-2">🎮 เกมที่</label>
+                <label className="block text-xs font-bold text-teal-700 mb-2">🎮 เกมที่</label>
                 <div className="flex gap-2 flex-wrap">
                   {Array.from({ length: maxAvailGame || 1 }, (_, i) => i + 1).map(g => (
                     <button key={g} type="button"
                       onClick={() => { setGame(g); setUserPickedGame(true); clearForm() }}
-                      className={`relative flex-1 min-w-[44px] py-2.5 rounded-xl font-black text-sm border-2 transition-all active:scale-95 ${game === g ? 'text-white shadow border-pink-400' : 'bg-pink-50 border-pink-200 text-pink-600 hover:border-amber-400'}`}
-                      style={game === g ? { background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' } : {}}>
+                      className={`relative flex-1 min-w-[44px] py-2.5 rounded-xl font-black text-sm border-2 transition-all active:scale-95 ${game === g ? 'text-white shadow border-teal-400' : 'bg-teal-50 border-teal-200 text-teal-600 hover:border-amber-400'}`}
+                      style={game === g ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
                       {g}
                       {latestGame === g && (
                         <span className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-green-400 rounded-full border-2 border-white" />
@@ -266,7 +266,7 @@ export default function ScoringPage() {
 
               {/* Table input */}
               <div>
-                <label className="block text-xs font-bold text-pink-700 mb-2">🪑 โต๊ะ</label>
+                <label className="block text-xs font-bold text-teal-700 mb-2">🪑 โต๊ะ</label>
                 <div className="flex gap-2 items-stretch">
                   <input
                     ref={tableNumRef}
@@ -274,20 +274,20 @@ export default function ScoringPage() {
                     onChange={e => { setTableNum(e.target.value.replace(/\D/g, '')); setTableSide('') }}
                     placeholder="หมายเลขโต๊ะ"
                     inputMode="numeric"
-                    className="flex-1 px-3 py-3 border-2 border-pink-100 rounded-xl text-lg font-black text-center bg-pink-50 focus:outline-none focus:border-pink-400"
+                    className="flex-1 px-3 py-3 border-2 border-teal-100 rounded-xl text-lg font-black text-center bg-teal-50 focus:outline-none focus:border-teal-400"
                   />
                   {(['A', 'B'] as const).map(side => (
                     <button key={side} type="button"
                       onClick={() => setTableSide(prev => prev === side ? '' : side)}
-                      className={`w-14 rounded-xl font-black text-xl border-2 transition-all active:scale-95 ${tableSide === side ? 'text-white shadow-md border-pink-400' : 'bg-pink-50 border-pink-200 text-pink-600 hover:border-amber-500'}`}
-                      style={tableSide === side ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
+                      className={`w-14 rounded-xl font-black text-xl border-2 transition-all active:scale-95 ${tableSide === side ? 'text-white shadow-md border-teal-400' : 'bg-teal-50 border-teal-200 text-teal-600 hover:border-amber-500'}`}
+                      style={tableSide === side ? { background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' } : {}}>
                       {side}
                     </button>
                   ))}
                 </div>
 
                 <div className="mt-2 min-h-[1.25rem]">
-                  {lookupState === 'loading' && <p className="text-xs font-bold text-pink-400">⏳ กำลังค้นหา...</p>}
+                  {lookupState === 'loading' && <p className="text-xs font-bold text-teal-400">⏳ กำลังค้นหา...</p>}
                   {lookupState === 'ok' && <p className="text-xs font-bold text-green-700">{lookupMsg}</p>}
                   {lookupState === 'warn' && <p className="text-xs font-bold text-orange-600">⚠️ {lookupMsg}</p>}
                   {lookupState === 'error' && <p className="text-xs font-bold text-red-600">❌ {lookupMsg}</p>}
@@ -299,19 +299,19 @@ export default function ScoringPage() {
           {mode === 'playoff' && (
             <>
               <div>
-                <label className="block text-xs font-bold text-pink-700 mb-1">🏆 รอบ</label>
+                <label className="block text-xs font-bold text-teal-700 mb-1">🏆 รอบ</label>
                 <select value={pfRound} onChange={e => { setPfRound(e.target.value); clearForm() }}
-                  className="w-full px-3 py-2.5 border-2 border-pink-100 rounded-xl text-sm font-semibold bg-pink-50 focus:outline-none focus:border-pink-400">
+                  className="w-full px-3 py-2.5 border-2 border-teal-100 rounded-xl text-sm font-semibold bg-teal-50 focus:outline-none focus:border-teal-400">
                   <option value="รองชนะเลิศ">รองชนะเลิศ (Semi-final)</option>
                   <option value="ชิงชนะเลิศ">ชิงชนะเลิศ (Final)</option>
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-bold text-pink-700 mb-1">🔢 คู่ที่</label>
+                <label className="block text-xs font-bold text-teal-700 mb-1">🔢 คู่ที่</label>
                 <input value={pfPair} onChange={e => setPfPair(e.target.value)}
                   onBlur={() => lookupPlayoffPair(pfRound, pfPair)}
                   placeholder="1" inputMode="numeric"
-                  className="w-full px-3 py-2.5 border-2 border-pink-100 rounded-xl text-sm font-semibold bg-pink-50 focus:outline-none focus:border-pink-400" />
+                  className="w-full px-3 py-2.5 border-2 border-teal-100 rounded-xl text-sm font-semibold bg-teal-50 focus:outline-none focus:border-teal-400" />
               </div>
             </>
           )}
@@ -319,14 +319,14 @@ export default function ScoringPage() {
           {/* Player cards */}
           {(nameA || nameB) && (
             <div className="flex gap-2 items-center">
-              <div className="flex-1 rounded-2xl p-3 border-2 border-pink-100 bg-pink-50 text-center">
-                <p className="text-[10px] font-black text-pink-400 uppercase tracking-wider mb-0.5">ฝั่ง A</p>
-                <p className="font-black text-pink-800 text-sm leading-tight">{nameA || '—'}</p>
+              <div className="flex-1 rounded-2xl p-3 border-2 border-teal-100 bg-teal-50 text-center">
+                <p className="text-[10px] font-black text-teal-400 uppercase tracking-wider mb-0.5">ฝั่ง A</p>
+                <p className="font-black text-teal-800 text-sm leading-tight">{nameA || '—'}</p>
               </div>
-              <div className="font-black text-pink-300 text-xl">VS</div>
-              <div className="flex-1 rounded-2xl p-3 border-2 border-pink-100 bg-pink-50 text-center">
-                <p className="text-[10px] font-black text-pink-400 uppercase tracking-wider mb-0.5">ฝั่ง B</p>
-                <p className="font-black text-pink-800 text-sm leading-tight">{nameB || '—'}</p>
+              <div className="font-black text-teal-300 text-xl">VS</div>
+              <div className="flex-1 rounded-2xl p-3 border-2 border-teal-100 bg-teal-50 text-center">
+                <p className="text-[10px] font-black text-teal-400 uppercase tracking-wider mb-0.5">ฝั่ง B</p>
+                <p className="font-black text-teal-800 text-sm leading-tight">{nameB || '—'}</p>
               </div>
             </div>
           )}
@@ -334,16 +334,16 @@ export default function ScoringPage() {
           {/* Score inputs */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-bold text-pink-700 mb-1 text-center truncate">{nameA || 'ผู้เล่น A'}</label>
+              <label className="block text-xs font-bold text-teal-700 mb-1 text-center truncate">{nameA || 'ผู้เล่น A'}</label>
               <input ref={scoreARef} value={scoreA} onChange={e => setScoreA(e.target.value)}
                 placeholder="0" type="number" inputMode="numeric"
-                className="w-full px-3 py-4 border-2 border-pink-100 rounded-xl text-2xl font-black text-center bg-pink-50 focus:outline-none focus:border-pink-400" />
+                className="w-full px-3 py-4 border-2 border-teal-100 rounded-xl text-2xl font-black text-center bg-teal-50 focus:outline-none focus:border-teal-400" />
             </div>
             <div>
-              <label className="block text-xs font-bold text-pink-700 mb-1 text-center truncate">{nameB || 'ผู้เล่น B'}</label>
+              <label className="block text-xs font-bold text-teal-700 mb-1 text-center truncate">{nameB || 'ผู้เล่น B'}</label>
               <input value={scoreB} onChange={e => setScoreB(e.target.value)}
                 placeholder="0" type="number" inputMode="numeric"
-                className="w-full px-3 py-4 border-2 border-pink-100 rounded-xl text-2xl font-black text-center bg-pink-50 focus:outline-none focus:border-pink-400" />
+                className="w-full px-3 py-4 border-2 border-teal-100 rounded-xl text-2xl font-black text-center bg-teal-50 focus:outline-none focus:border-teal-400" />
             </div>
           </div>
 
@@ -356,17 +356,17 @@ export default function ScoringPage() {
 
           {/* Confirm overwrite dialog */}
           {confirmOverwrite && (
-            <div className="rounded-2xl p-4 border-2 border-pink-200 bg-pink-50 space-y-3">
-              <p className="text-sm font-black text-pink-700">⚠️ โต๊ะ {subTable} เกม {game} มีผลอยู่แล้ว</p>
-              <p className="text-xs text-pink-600">ผลเดิม: <strong>{existingResult?.score1} – {existingResult?.score2}</strong></p>
-              <p className="text-xs text-pink-500">ต้องการเขียนทับด้วย {confirmOverwrite.scoreA} – {confirmOverwrite.scoreB} หรือไม่?</p>
+            <div className="rounded-2xl p-4 border-2 border-teal-200 bg-teal-50 space-y-3">
+              <p className="text-sm font-black text-teal-700">⚠️ โต๊ะ {subTable} เกม {game} มีผลอยู่แล้ว</p>
+              <p className="text-xs text-teal-600">ผลเดิม: <strong>{existingResult?.score1} – {existingResult?.score2}</strong></p>
+              <p className="text-xs text-teal-500">ต้องการเขียนทับด้วย {confirmOverwrite.scoreA} – {confirmOverwrite.scoreB} หรือไม่?</p>
               <div className="flex gap-2">
                 <button type="button" onClick={() => doSubmit(true)} disabled={submitting}
-                  className="flex-1 py-2 rounded-xl bg-pink-500 text-white font-bold text-sm hover:bg-amber-600 active:scale-95 transition disabled:opacity-40">
+                  className="flex-1 py-2 rounded-xl bg-teal-500 text-white font-bold text-sm hover:bg-amber-600 active:scale-95 transition disabled:opacity-40">
                   ✅ ยืนยันเขียนทับ
                 </button>
                 <button type="button" onClick={() => setConfirmOverwrite(null)}
-                  className="flex-1 py-2 rounded-xl bg-white border-2 border-pink-100 text-pink-600 font-bold text-sm hover:bg-pink-50 active:scale-95 transition">
+                  className="flex-1 py-2 rounded-xl bg-white border-2 border-teal-100 text-teal-600 font-bold text-sm hover:bg-teal-50 active:scale-95 transition">
                   ยกเลิก
                 </button>
               </div>
@@ -375,7 +375,7 @@ export default function ScoringPage() {
 
           <button type="submit" disabled={submitting || (mode === 'qualify' && lookupState !== 'ok')}
             className="w-full py-3.5 rounded-2xl font-black text-base text-white shadow-lg transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' }}>
+            style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
             {submitting ? '⏳ กำลังบันทึก...' : submitLabel}
           </button>
 
