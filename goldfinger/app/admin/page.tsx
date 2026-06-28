@@ -357,7 +357,7 @@ export default function AdminPage() {
             <button key={lv} onClick={() => setLevel(lv)}
               className={`flex-1 py-3 rounded-xl font-bold text-sm transition ${level === lv ? 'text-white shadow' : 'text-teal-600'}`}
               style={level === lv ? { background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' } : {}}>
-              {lv === 'มต้น' ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย'}
+              {lv === 'มต้น' ? 'ม.ต้น' : 'ม.ปลาย'}{players.filter(p => p.level === lv).length > 0 && <span className="ml-1 opacity-75 text-xs">({players.filter(p => p.level === lv).length} คน)</span>}
             </button>
           ))}
         </div>

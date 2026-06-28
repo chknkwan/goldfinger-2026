@@ -265,7 +265,7 @@ export default function DisplayPage() {
                     {Object.entries(tablesByNum).sort(([a], [b]) => Number(a) - Number(b)).map(([tn, rows]) => (
                       <div key={tn} className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: dk.card, borderColor: dk.border }}>
                         <div className="px-4 py-2.5 text-white font-black text-sm"
-                          style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
+                          style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
                           โต๊ะ {tn}
                         </div>
                         <div className="px-4 py-3 space-y-2">
@@ -306,7 +306,7 @@ export default function DisplayPage() {
                 return (
                   <div key={i} className="rounded-2xl overflow-hidden shadow-sm border" style={{ background: dk.card, borderColor: dk.border }}>
                     <div className="px-4 py-2.5 text-white font-black text-sm"
-                      style={{ background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' }}>
+                      style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
                       {p.round} · คู่ {p.pair_no}
                     </div>
                     <div className={`px-4 py-4 flex items-center gap-3 ${sz.tableText}`}>
