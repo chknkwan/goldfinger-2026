@@ -5,6 +5,7 @@ import LoginScreen from '@/components/LoginScreen'
 import { supabase } from '@/lib/supabase'
 import { computeStandings, computeMatchResult, Player, GameRow } from '@/lib/gf-logic'
 import * as XLSX from 'xlsx'
+import QRCode from 'qrcode'
 
 type Level = 'มต้น' | 'มปลาย'
 
@@ -49,6 +50,15 @@ export default function AdminPage() {
   // Broadcast
   const [announcement, setAnnouncement] = useState('')
   const [announceLoading, setAnnounceLoading] = useState(false)
+
+  // QR Code
+  const [qrDataUrl, setQrDataUrl] = useState('')
+  const [qrOpen, setQrOpen] = useState(false)
+
+  // Backup/Restore
+  const [restoreFile, setRestoreFile] = useState<File | null>(null)
+  const [backupLoading, setBackupLoading] = useState(false)
+  const [restoreLoading, setRestoreLoading] = useState(false)
 
   const loadData = useCallback(async () => {
     const [{ data: p }, { data: g }, { data: ta }, { data: pf }] = await Promise.all([
@@ -123,25 +133,6 @@ export default function AdminPage() {
     if (!res.ok) setStatus({ msg: data.error, ok: false })
     else { setStatus({ msg: '✅ สร้างคู่ชิงชนะเลิศสำเร็จ', ok: true }); await loadData() }
     setLoading(false)
-  }
-
-  async function resetSystem() {
-    if (!confirm('⚠️ ยืนยันรีเซ็ตระบบทั้งหมด?\nข้อมูลผลการแข่งขัน โต๊ะ และเพลย์ออฟจะถูกลบหมด\n(รายชื่อนักเรียนยังอยู่)')) return
-    // ข้อ 6: backup อัตโนมัติก่อนรีเซ็ต
-    const a = document.createElement('a')
-    a.href = '/api/export?level=all'
-    a.download = `goldfinger-backup-${new Date().toISOString().slice(0, 10)}.xlsx`
-    a.click()
-    await new Promise(r => setTimeout(r, 500))
-    await Promise.all([
-      supabase.from('games').delete().neq('id', 0),
-      supabase.from('table_assignments').delete().neq('id', 0),
-      supabase.from('playoffs').delete().neq('id', 0),
-      supabase.from('broadcast').delete().neq('id', 0),
-    ])
-    await supabase.from('broadcast').insert({ type: 'reset', level: null, payload: {} })
-    setStatus({ msg: '✅ รีเซ็ตระบบสำเร็จ', ok: true })
-    await loadData()
   }
 
   // ---- Player management ----
@@ -258,6 +249,52 @@ export default function AdminPage() {
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'ผู้เล่น')
     XLSX.writeFile(wb, 'ตัวอย่าง_รายชื่อผู้เล่น.xlsx')
+  }
+
+  // Generate QR when opened
+  useEffect(() => {
+    if (!qrOpen || qrDataUrl) return
+    const url = typeof window !== 'undefined' ? `${window.location.origin}/display` : '/display'
+    QRCode.toDataURL(url, { width: 256, margin: 2 }).then(setQrDataUrl)
+  }, [qrOpen, qrDataUrl])
+
+  async function downloadBackup() {
+    setBackupLoading(true)
+    const res = await fetch('/api/backup')
+    const blob = await res.blob()
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `goldfinger-backup-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    setBackupLoading(false)
+  }
+
+  async function restoreBackup() {
+    if (!restoreFile) return
+    if (!confirm('⚠️ Restore จะลบข้อมูลทั้งหมดในระบบก่อน แล้วนำเข้าจากไฟล์\nยืนยันหรือไม่?')) return
+    setRestoreLoading(true)
+    const text = await restoreFile.text()
+    let body: unknown
+    try { body = JSON.parse(text) } catch { alert('ไฟล์ JSON ไม่ถูกต้อง'); setRestoreLoading(false); return }
+    const res = await fetch('/api/backup', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    setRestoreLoading(false)
+    if (res.ok) { setStatus({ msg: '✅ Restore สำเร็จ', ok: true }); setRestoreFile(null); await loadData() }
+    else { const d = await res.json(); alert(d.error || 'Restore ไม่สำเร็จ') }
+  }
+
+  async function resetResults() {
+    if (!confirm('รีเซ็ตผลการแข่งขันทั้งหมด? (รายชื่อนักเรียนยังอยู่)')) return
+    await fetch('/api/backup?mode=results', { method: 'DELETE' })
+    setStatus({ msg: '✅ รีเซ็ตผลการแข่งขันแล้ว', ok: true })
+    await loadData()
+  }
+
+  async function resetAll() {
+    if (!confirm('⚠️ ลบข้อมูลทั้งหมด รวมรายชื่อนักเรียน?\nไม่สามารถกู้คืนได้!')) return
+    if (!confirm('กด OK อีกครั้งเพื่อยืนยัน')) return
+    await fetch('/api/backup?mode=all', { method: 'DELETE' })
+    setStatus({ msg: '✅ รีเซ็ตข้อมูลทั้งหมดแล้ว', ok: true })
+    await loadData()
   }
 
   if (!checked) return null
@@ -557,20 +594,76 @@ export default function AdminPage() {
         {/* Export */}
         <div className="bg-white rounded-2xl p-5 border border-teal-100 shadow">
           <p className="font-black text-teal-700 mb-3">📥 Export ผลคะแนน</p>
-          <div className="flex gap-3 flex-wrap">
-            <a href={`/api/export?level=${encodeURIComponent(level)}`} className="flex-1 py-3 rounded-xl text-center font-bold text-sm bg-green-700 text-white hover:bg-green-800 transition">📊 Export {level} (.xlsx)</a>
-            <a href="/api/export?level=all" className="flex-1 py-3 rounded-xl text-center font-bold text-sm border-2 border-green-600 text-green-800 hover:bg-green-50 transition">📊 Export ทุกระดับ</a>
+          <div className="flex gap-2">
+            <a href={`/api/export?level=${encodeURIComponent('มต้น')}`}
+              className="flex-1 py-2.5 rounded-xl text-center font-bold text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 transition active:scale-95">
+              📊 ม.ต้น (.xlsx)
+            </a>
+            <a href={`/api/export?level=${encodeURIComponent('มปลาย')}`}
+              className="flex-1 py-2.5 rounded-xl text-center font-bold text-sm bg-emerald-100 text-emerald-700 border border-emerald-200 hover:bg-emerald-200 transition active:scale-95">
+              📊 ม.ปลาย (.xlsx)
+            </a>
+          </div>
+          <p className="text-xs text-teal-300 mt-2">ดาวน์โหลดอันดับและผลเป็นไฟล์ Excel</p>
+        </div>
+
+        {/* QR Code */}
+        <div className="bg-white rounded-2xl border border-teal-100 shadow overflow-hidden">
+          <button onClick={() => setQrOpen(v => !v)} className="w-full p-5 flex justify-between items-center font-black text-teal-700 hover:bg-teal-50 transition">
+            <span>📱 QR Code หน้าจอแสดงผล</span>
+            <span className="text-teal-300">{qrOpen ? '▲' : '▼'}</span>
+          </button>
+          {qrOpen && (
+            <div className="border-t border-teal-50 p-5 flex flex-col items-center gap-3">
+              {qrDataUrl
+                ? <img src={qrDataUrl} alt="QR Display" className="w-48 h-48 rounded-2xl border-4 border-teal-100 shadow" />
+                : <div className="w-48 h-48 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-300">กำลังสร้าง...</div>}
+              <p className="text-xs text-teal-500 font-semibold">สแกนเพื่อเปิดหน้าจอ display</p>
+              <p className="text-xs text-teal-300 break-all">{typeof window !== 'undefined' ? `${window.location.origin}/display` : '/display'}</p>
+            </div>
+          )}
+        </div>
+
+        {/* Backup / Restore */}
+        <div className="bg-white rounded-2xl p-5 border border-teal-100 shadow">
+          <p className="font-black text-teal-700 mb-3">💾 Backup &amp; Restore</p>
+          <div className="space-y-3">
+            <div>
+              <p className="text-xs text-teal-500 mb-2">Export ข้อมูลทั้งหมด (ผู้เล่น + ผลการแข่งขัน) เป็นไฟล์ JSON</p>
+              <button disabled={backupLoading} onClick={downloadBackup}
+                className="w-full py-2.5 rounded-xl font-bold text-sm text-white shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-40"
+                style={{ background: 'linear-gradient(135deg,#3b82f6,#6366f1)' }}>
+                {backupLoading ? '⏳ กำลัง export...' : '📤 Download Backup (.json)'}
+              </button>
+            </div>
+            <hr className="border-teal-100" />
+            <div>
+              <p className="text-xs text-red-400 font-bold mb-2">⚠️ Restore จะลบข้อมูลทั้งหมดในระบบก่อน แล้วนำเข้าจากไฟล์</p>
+              <input type="file" accept=".json"
+                onChange={e => setRestoreFile(e.target.files?.[0] || null)}
+                className="w-full text-sm text-teal-700 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-teal-100 file:text-teal-700 hover:file:bg-teal-200 mb-2" />
+              <button disabled={!restoreFile || restoreLoading} onClick={restoreBackup}
+                className="w-full py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-red-500 to-rose-500 text-white shadow hover:opacity-90 active:scale-95 transition-all disabled:opacity-40">
+                {restoreLoading ? '⏳ กำลัง restore...' : '📥 Restore จากไฟล์'}
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Reset */}
-        <div className="bg-red-50 rounded-2xl p-5 border-2 border-red-300 shadow">
-          <p className="font-black text-red-700 mb-1">🚨 รีเซ็ตระบบ — ระวัง!</p>
-          <p className="text-xs text-red-600 mb-3">จะลบ <strong>ผลการแข่งขัน โต๊ะ และเพลย์ออฟทั้งหมด</strong> ไม่สามารถกู้คืนได้ (รายชื่อนักเรียนยังอยู่)</p>
-          <button onClick={resetSystem}
-            className="w-full py-3 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 transition">
-            🗑️ รีเซ็ตระบบทั้งหมด
-          </button>
+        <div className="bg-white rounded-2xl p-5 border border-red-100 shadow">
+          <p className="font-black text-red-700 mb-1">🗑️ รีเซ็ตข้อมูล</p>
+          <p className="text-xs text-gray-400 mb-4">แนะนำ Backup ก่อนทุกครั้ง — การรีเซ็ตไม่สามารถกู้คืนได้</p>
+          <div className="flex gap-2">
+            <button onClick={resetResults}
+              className="flex-1 py-3 rounded-2xl font-bold text-sm bg-amber-100 text-amber-800 border-2 border-amber-300 hover:bg-amber-200 active:scale-95 transition-all">
+              🔄 Reset ผลแข่ง<br/><span className="text-xs font-normal">เก็บรายชื่อนักเรียน</span>
+            </button>
+            <button onClick={resetAll}
+              className="flex-1 py-3 rounded-2xl font-bold text-sm bg-red-100 text-red-700 border-2 border-red-300 hover:bg-red-200 active:scale-95 transition-all">
+              💣 Reset ทั้งหมด<br/><span className="text-xs font-normal">ลบนักเรียนด้วย</span>
+            </button>
+          </div>
         </div>
 
         {/* Players Management */}
