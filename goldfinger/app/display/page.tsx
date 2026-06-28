@@ -117,7 +117,7 @@ export default function DisplayPage() {
 
   const dk = dark
     ? { bg: '#1c1410', card: '#292015', border: '#4a3820', text: 'text-amber-100', subtext: 'text-amber-400', thead: '#92400e', rowEven: 'bg-amber-950/20', tableBg: 'bg-amber-950/30' }
-    : { bg: '#FEFAF2', card: 'white', border: '#f5e8e8', text: 'text-gray-900', subtext: 'text-teal-400', thead: '#A8D5D0', rowEven: 'bg-teal-50/30', tableBg: 'bg-teal-50' }
+    : { bg: '#FEFAF2', card: 'white', border: '#f5e8e8', text: 'text-gray-900', subtext: 'text-teal-500', thead: '#0f766e', rowEven: 'bg-teal-50/30', tableBg: 'bg-teal-50' }
 
   return (
     <div className="min-h-screen pb-16 transition-colors duration-300" style={{ background: dk.bg }}>
@@ -163,7 +163,7 @@ export default function DisplayPage() {
             {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
               <button key={lv} onClick={() => setLevel(lv)}
                 className={`flex-1 py-2 rounded-xl font-bold text-sm transition-all ${level === lv ? 'text-white shadow' : `${dk.subtext} hover:opacity-80`}`}
-                style={level === lv ? { background: 'linear-gradient(135deg,#A8D5D0,#c9ecea)' } : {}}>
+                style={level === lv ? { background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' } : {}}>
                 {lv === 'มต้น' ? '🌱 ม.ต้น' : '🌸 ม.ปลาย'}
               </button>
             ))}
@@ -192,7 +192,7 @@ export default function DisplayPage() {
         {/* Current game badge */}
         {latestGame > 0 && (
           <div className="rounded-2xl p-3 mb-4 text-center text-white font-black text-sm shadow"
-            style={{ background: 'linear-gradient(90deg,#A8D5D0,#c9ecea)' }}>
+            style={{ background: 'linear-gradient(90deg,#0f766e,#2dd4bf)' }}>
             ⚡ ขณะนี้อยู่ในเกมที่ {latestGame}
           </div>
         )}
