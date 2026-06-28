@@ -123,7 +123,7 @@ export default function DisplayPage() {
     <div className="min-h-screen pb-16 transition-colors duration-300" style={{ background: dk.bg }}>
       {/* Header */}
       <div className="rounded-b-3xl p-5 text-center shadow-xl mb-4"
-        style={{ background: 'linear-gradient(135deg,#6db8b2,#A8D5D0)', color: '#1a4a47' }}>
+        style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)', color: 'white' }}>
         <div className="flex items-center justify-between mb-2">
           <span className="font-black text-yellow-100 tabular-nums text-sm w-24 text-left">{clock}</span>
           <h1 className="font-black text-xl flex-1" style={{ fontFamily: "'Nunito',sans-serif" }}>🏅 Gold Finger</h1>
