@@ -14,16 +14,22 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const { name, level, room } = body
 
-  // หาเลขที่ถัดไปของระดับนั้น
-  const { data: existing } = await supabase
-    .from('players').select('number').eq('level', level).order('number', { ascending: false }).limit(1)
-  const nextNumber = existing && existing.length > 0 ? existing[0].number + 1 : 1
+  // ใช้ SELECT MAX แบบ atomic โดย retry ถ้าชน unique constraint (number, level)
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const { data: existing } = await supabase
+      .from('players').select('number').eq('level', level).order('number', { ascending: false }).limit(1)
+    const nextNumber = existing && existing.length > 0 ? existing[0].number + 1 : 1
 
-  const { data, error } = await supabase.from('players')
-    .insert({ number: nextNumber, name, level, room: room || '' })
-    .select().single()
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+    const { data, error } = await supabase.from('players')
+      .insert({ number: nextNumber, name, level, room: room || '' })
+      .select().single()
+    if (!error) return NextResponse.json(data)
+    // ถ้าชน unique constraint ให้ลองใหม่ ถ้า error อื่นให้หยุด
+    if (!error.message.includes('unique') && !error.message.includes('duplicate')) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+  }
+  return NextResponse.json({ error: 'ไม่สามารถกำหนดหมายเลขได้ กรุณาลองใหม่' }, { status: 500 })
 }
 
 export async function PATCH(req: NextRequest) {

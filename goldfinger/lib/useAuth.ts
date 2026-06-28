@@ -1,11 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
 
-const PASSWORDS: Record<string, string> = {
-  admin: process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'goldfinger2026',
-  scoring: process.env.NEXT_PUBLIC_SCORING_PASSWORD || 'goldfinger2026',
-}
-
 export function useAuth(role: 'admin' | 'scoring' = 'admin') {
   const SESSION_KEY = `gf_auth_${role}`
 
@@ -18,8 +13,14 @@ export function useAuth(role: 'admin' | 'scoring' = 'admin') {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [role])
 
-  function login(pw: string) {
-    if (pw === PASSWORDS[role]) {
+  async function login(pw: string): Promise<boolean> {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role, password: pw }),
+    })
+    const data = await res.json()
+    if (data.ok) {
       sessionStorage.setItem(SESSION_KEY, '1')
       setAuthed(true)
       return true

@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 interface Props {
   role?: 'admin' | 'scoring'
-  onLogin: (pw: string) => boolean
+  onLogin: (pw: string) => Promise<boolean>
 }
 
 const CONFIG = {
@@ -42,14 +42,12 @@ export default function LoginScreen({ role = 'admin', onLogin }: Props) {
   const eventName = process.env.NEXT_PUBLIC_EVENT_NAME || 'Gold Finger'
   const schoolName = process.env.NEXT_PUBLIC_SCHOOL_NAME || ''
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    setTimeout(() => {
-      const ok = onLogin(pw)
-      setLoading(false)
-      if (!ok) { setErr(true); setPw('') }
-    }, 300)
+    const ok = await onLogin(pw)
+    setLoading(false)
+    if (!ok) { setErr(true); setPw('') }
   }
 
   return (

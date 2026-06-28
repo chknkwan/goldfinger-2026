@@ -32,17 +32,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ duplicates, toInsert: toInsert.length })
   }
 
-  // insert ที่ไม่ซ้ำ
+  // insert ที่ไม่ซ้ำ — ทีละคนเพื่อหลีกเลี่ยง race condition บนเลขผู้เล่น
   const results = []
   for (const level of ['มต้น', 'มปลาย']) {
     const levelRows = toInsert.filter(r => r.level === level)
-    if (!levelRows.length) continue
-    const { data: last } = await supabase.from('players').select('number').eq('level', level).order('number', { ascending: false }).limit(1)
-    let nextNum = last && last.length > 0 ? last[0].number + 1 : 1
-    const insertData = levelRows.map(r => ({ number: nextNum++, name: r.name.trim(), level: r.level, room: r.room || '' }))
-    const { data, error } = await supabase.from('players').insert(insertData).select()
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-    results.push(...(data || []))
+    for (const row of levelRows) {
+      let inserted = false
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const { data: last } = await supabase.from('players').select('number').eq('level', level).order('number', { ascending: false }).limit(1)
+        const nextNum = last && last.length > 0 ? last[0].number + 1 : 1
+        const { data, error } = await supabase.from('players').insert({ number: nextNum, name: row.name.trim(), level: row.level, room: row.room || '' }).select().single()
+        if (!error) { results.push(data); inserted = true; break }
+        if (!error.message.includes('unique') && !error.message.includes('duplicate')) {
+          return NextResponse.json({ error: error.message }, { status: 500 })
+        }
+      }
+      if (!inserted) return NextResponse.json({ error: `ไม่สามารถกำหนดหมายเลขให้ ${row.name} ได้` }, { status: 500 })
+    }
   }
 
   return NextResponse.json({ inserted: results.length, duplicatesSkipped: duplicates.length })
