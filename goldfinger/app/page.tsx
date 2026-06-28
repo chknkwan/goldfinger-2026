@@ -10,8 +10,8 @@ export default function Home() {
           style={{ backgroundImage: 'linear-gradient(135deg,#92400e,#d97706)', fontFamily: "'Nunito',sans-serif" }}>
           Goldfinger
         </h1>
-        <p className="text-amber-400 font-semibold text-xs mt-1">Gold Finger (เกมตึกถล่ม)</p>
-        {schoolName && <p className="text-amber-300 font-medium text-xs mt-0.5">{schoolName}</p>}
+        <p className="text-amber-500 font-semibold text-sm mt-1">(เกมตึกถล่ม)</p>
+        {schoolName && <p className="text-amber-400 font-medium text-xs mt-0.5">{schoolName}</p>}
       </div>
 
       <div className="w-full max-w-sm space-y-4">
