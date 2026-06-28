@@ -489,7 +489,7 @@ export default function AdminPage() {
                     </div>
                     <div className="w-full bg-teal-100 rounded-full h-2.5">
                       <div className="h-2.5 rounded-full transition-all duration-500"
-                        style={{ width: `${pct}%`, background: scored === total ? '#16a34a' : '#d97706' }} />
+                        style={{ width: `${pct}%`, background: scored === total ? '#16a34a' : 'linear-gradient(90deg,#0f766e,#2dd4bf)' }} />
                     </div>
                   </div>
                 )}

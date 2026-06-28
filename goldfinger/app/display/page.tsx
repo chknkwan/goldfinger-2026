@@ -241,7 +241,7 @@ export default function DisplayPage() {
                       <span className={`font-normal text-xs ml-1 ${dk.subtext}`}>(#{s.player.number})</span>
                     </td>
                     <td className={`${sz.cell} text-center ${sz.stat} ${dk.subtext} hidden sm:table-cell`}>{s.player.room}</td>
-                    <td className={`${sz.cell} text-center ${sz.stat} text-amber-600`}>{s.w}-{s.t}-{s.l}</td>
+                    <td className={`${sz.cell} text-center ${sz.stat} text-teal-500`}>{s.w}-{s.t}-{s.l}</td>
                     <td className={`${sz.cell} text-center font-black ${sz.pts} ${dk.text}`}>{s.points}</td>
                     <td className={`${sz.cell} text-center font-bold ${sz.stat} ${s.diffSum > 0 ? 'text-emerald-600' : s.diffSum < 0 ? 'text-red-500' : dk.subtext}`}>
                       {s.diffSum > 0 ? '+' : ''}{s.diffSum}
@@ -271,7 +271,7 @@ export default function DisplayPage() {
                         <div className="px-4 py-3 space-y-2">
                           {rows.map(r => (
                             <p key={r.sub_table} className={`${sz.tableText} flex items-center gap-2`}>
-                              <strong className="text-amber-600">{r.sub_table.slice(-1)}:</strong>
+                              <strong className="text-teal-600">{r.sub_table.slice(-1)}:</strong>
                               {!r.is_bye && (
                                 <span className={`inline-block w-2 h-2 rounded-full shrink-0 ${scoredSet.has(r.sub_table) ? 'bg-emerald-400' : 'bg-gray-300'}`} />
                               )}
@@ -279,7 +279,7 @@ export default function DisplayPage() {
                                 ? <span className="text-blue-500">🎁 {r.player1?.name} <span className="text-xs">(#{r.player1?.number})</span> ได้ bye</span>
                                 : <span className={dk.text}>
                                   {r.player1?.name} <span className={`font-black ${dk.subtext}`}>(#{r.player1?.number})</span>
-                                  <strong className="text-amber-500 mx-2">VS</strong>
+                                  <strong className="text-teal-500 mx-2">VS</strong>
                                   {r.player2?.name} <span className={`font-black ${dk.subtext}`}>(#{r.player2?.number})</span>
                                 </span>
                               }
