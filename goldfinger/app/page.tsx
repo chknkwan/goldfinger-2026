@@ -9,7 +9,7 @@ export default function Home() {
           style={{ backgroundImage: 'linear-gradient(135deg,#92400e,#d97706)', fontFamily: "'Nunito',sans-serif" }}>
           Goldfinger
         </h1>
-        <p className="text-amber-400 font-semibold text-xs mt-1">ระบบจัดการแข่งขันคณิตศาสตร์</p>
+        <p className="text-amber-400 font-semibold text-xs mt-1">Gold Finger (เกมตึกถล่ม)</p>
       </div>
 
       <div className="w-full max-w-sm space-y-4">
