@@ -36,6 +36,7 @@ export default function ScoringPage() {
 
   const [pfRound, setPfRound] = useState('รองชนะเลิศ')
   const [pfPair, setPfPair] = useState('')
+  const [pfPairs, setPfPairs] = useState<{ pair_no: number; player1: Player; player2: Player | null; score1: number | null; score2: number | null }[]>([])
 
   const [status, setStatus] = useState<{ msg: string; ok: boolean } | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -184,19 +185,17 @@ export default function ScoringPage() {
     setConfirmOverwrite(null)
   }
 
-  async function lookupPlayoffPair(round: string, pair: string) {
-    if (!pair) return
+  const loadPfPairs = useCallback(async (round: string) => {
     const { data } = await supabase.from('playoffs')
       .select('*, player1:player1_id(*), player2:player2_id(*)')
-      .eq('level', level).eq('round', round).eq('pair_no', pair).single()
-    if (data) {
-      setNameA((data.player1 as Player)?.name || '')
-      setNameB((data.player2 as Player)?.name || '')
-      if (data.score1 !== null) setScoreA(String(data.score1))
-      if (data.score2 !== null) setScoreB(String(data.score2))
-      setTimeout(() => scoreARef.current?.focus(), 50)
-    }
-  }
+      .eq('level', level).eq('round', round).order('pair_no')
+    setPfPairs((data || []) as typeof pfPairs)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [level])
+
+  useEffect(() => {
+    if (mode === 'playoff') { setPfPair(''); setNameA(''); setNameB(''); setScoreA(''); setScoreB(''); loadPfPairs(pfRound) }
+  }, [pfRound, level, mode, loadPfPairs])
 
   if (!checked) return null
   if (!authed) return <LoginScreen role="scoring" onLogin={login} />
@@ -298,21 +297,42 @@ export default function ScoringPage() {
 
           {mode === 'playoff' && (
             <>
-              <div>
-                <label className="block text-xs font-bold text-teal-700 mb-1">🏆 รอบ</label>
-                <select value={pfRound} onChange={e => { setPfRound(e.target.value); clearForm() }}
-                  className="w-full px-3 py-2.5 border-2 border-teal-100 rounded-xl text-sm font-semibold bg-teal-50 focus:outline-none focus:border-teal-400">
-                  <option value="รองชนะเลิศ">รองชนะเลิศ (Semi-final)</option>
-                  <option value="ชิงชนะเลิศ">ชิงชนะเลิศ (Final)</option>
-                </select>
+              {/* Round toggle */}
+              <div className="flex bg-white rounded-2xl p-1.5 border-2 border-pink-100 shadow-sm gap-1">
+                {(['รองชนะเลิศ', 'ชิงชนะเลิศ'] as const).map(r => (
+                  <button key={r} type="button" onClick={() => setPfRound(r)}
+                    className={`flex-1 py-2.5 rounded-xl font-bold text-sm transition-all ${pfRound === r ? 'text-white shadow' : 'text-pink-400'}`}
+                    style={pfRound === r ? { background: 'linear-gradient(135deg,#F98B8B,#FDBBBB)' } : {}}>
+                    {r === 'รองชนะเลิศ' ? '🥊 รองชนะเลิศ' : '🏆 ชิงชนะเลิศ'}
+                  </button>
+                ))}
               </div>
-              <div>
-                <label className="block text-xs font-bold text-teal-700 mb-1">🔢 คู่ที่</label>
-                <input value={pfPair} onChange={e => setPfPair(e.target.value)}
-                  onBlur={() => lookupPlayoffPair(pfRound, pfPair)}
-                  placeholder="1" inputMode="numeric"
-                  className="w-full px-3 py-2.5 border-2 border-teal-100 rounded-xl text-sm font-semibold bg-teal-50 focus:outline-none focus:border-teal-400" />
-              </div>
+
+              {/* Pair buttons */}
+              {pfPairs.length > 0 ? (
+                <div>
+                  <label className="block text-xs font-bold text-teal-700 mb-2">🎯 เลือกคู่</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {pfPairs.map(p => (
+                      <button key={p.pair_no} type="button"
+                        onClick={() => {
+                          setPfPair(String(p.pair_no))
+                          setNameA((p.player1 as Player)?.name || '')
+                          setNameB((p.player2 as Player)?.name || '')
+                          setScoreA(p.score1 !== null ? String(p.score1) : '')
+                          setScoreB(p.score2 !== null ? String(p.score2) : '')
+                          setTimeout(() => scoreARef.current?.focus(), 50)
+                        }}
+                        className={`flex-1 min-w-[80px] py-2.5 px-3 rounded-xl font-bold text-sm border-2 transition-all active:scale-95 ${pfPair === String(p.pair_no) ? 'text-white border-transparent' : 'bg-teal-50 border-teal-100 text-teal-700'}`}
+                        style={pfPair === String(p.pair_no) ? { background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' } : {}}>
+                        คู่ {p.pair_no}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-center text-teal-300 text-sm py-3 font-semibold">ยังไม่มีข้อมูล{pfRound}</p>
+              )}
             </>
           )}
 
