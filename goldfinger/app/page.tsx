@@ -8,7 +8,7 @@ export default function Home() {
         <div className="text-6xl mb-3">🥇</div>
         <h1 className="text-4xl font-black text-transparent bg-clip-text"
           style={{ backgroundImage: 'linear-gradient(135deg,#92400e,#d97706)', fontFamily: "'Nunito',sans-serif" }}>
-          Goldfinger <span className="text-2xl">(เกมตึกถล่ม)</span>
+          Gold Finger <span className="text-2xl">(เกมตึกถล่ม)</span>
         </h1>
         {schoolName && <p className="text-amber-400 font-medium text-xs mt-0.5">{schoolName}</p>}
       </div>
