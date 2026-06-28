@@ -58,7 +58,7 @@ export default function LoginScreen({ role = 'admin', onLogin }: Props) {
         {/* Header card */}
         <div className={`rounded-3xl p-8 bg-gradient-to-br ${cfg.grad} text-white text-center mb-4 shadow-2xl`}>
           <div className="text-6xl mb-3">{cfg.icon}</div>
-          <h1 className="text-2xl font-black" style={{ fontFamily: "'Nunito',sans-serif" }}>Goldfinger</h1>
+          <h1 className="text-2xl font-black" style={{ fontFamily: "'Nunito',sans-serif" }}>Gold Finger</h1>
           <p className="text-yellow-100 text-sm mt-1 font-semibold">{cfg.label}</p>
         </div>
 
