@@ -41,8 +41,25 @@ export default function ScoringPage() {
   const [status, setStatus] = useState<{ msg: string; ok: boolean } | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
+  // Progress pills
+  const [tableList, setTableList] = useState<{ sub_table: string; is_bye: boolean }[]>([])
+  const [scoredSet, setScoredSet] = useState<Set<string>>(new Set())
+
   const tableNumRef = useRef<HTMLInputElement>(null)
   const scoreARef = useRef<HTMLInputElement>(null)
+
+  const fetchProgress = useCallback(async () => {
+    if (!game) return
+    const [{ data: ta }, { data: gs }] = await Promise.all([
+      supabase.from('table_assignments').select('sub_table, is_bye').eq('level', level).eq('game', game).order('sub_table'),
+      supabase.from('games').select('sub_table, score1').eq('level', level).eq('game', game),
+    ])
+    setTableList((ta || []) as { sub_table: string; is_bye: boolean }[])
+    const scored = new Set((gs || []).filter((r: { score1: number | null }) => r.score1 !== null).map((r: { sub_table: string }) => r.sub_table))
+    setScoredSet(scored)
+  }, [level, game])
+
+  useEffect(() => { if (authed) fetchProgress() }, [authed, fetchProgress])
 
   const fetchLatestGame = useCallback(async () => {
     const { data } = await supabase.from('table_assignments')
@@ -167,6 +184,7 @@ export default function ScoringPage() {
 
     clearForm()
     setSubmitting(false)
+    fetchProgress()
     setTimeout(() => tableNumRef.current?.focus(), 100)
   }
 
@@ -266,6 +284,39 @@ export default function ScoringPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Progress pills */}
+              {tableList.filter(t => !t.is_bye).length > 0 && (
+                <div>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-bold text-teal-700">📋 ความคืบหน้าเกม {game}</label>
+                    <span className="text-xs font-bold text-teal-500">
+                      {tableList.filter(t => !t.is_bye && scoredSet.has(t.sub_table)).length}/{tableList.filter(t => !t.is_bye).length} คู่
+                    </span>
+                  </div>
+                  <div className="w-full bg-teal-100 rounded-full h-2 mb-3">
+                    <div className="h-2 rounded-full transition-all duration-500"
+                      style={{
+                        width: `${tableList.filter(t => !t.is_bye).length > 0 ? Math.round(tableList.filter(t => !t.is_bye && scoredSet.has(t.sub_table)).length / tableList.filter(t => !t.is_bye).length * 100) : 0}%`,
+                        background: tableList.filter(t => !t.is_bye && scoredSet.has(t.sub_table)).length === tableList.filter(t => !t.is_bye).length ? '#16a34a' : 'linear-gradient(90deg,#0f766e,#2dd4bf)'
+                      }} />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tableList.filter(t => !t.is_bye).map(t => {
+                      const done = scoredSet.has(t.sub_table)
+                      const num = t.sub_table.slice(0, -1)
+                      const side = t.sub_table.slice(-1) as 'A' | 'B'
+                      return (
+                        <button key={t.sub_table} type="button"
+                          onClick={() => { setTableNum(num); setTableSide(side) }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all active:scale-95 ${done ? 'bg-emerald-100 border-emerald-300 text-emerald-700' : 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'}`}>
+                          {t.sub_table}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* Warning: กรอกย้อนหลัง */}
               {game < latestGame && (
