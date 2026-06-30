@@ -174,8 +174,17 @@ export default function DisplayPage() {
             </div>
           </div>
 
-          {/* View icon buttons */}
+          {/* Level + View icon buttons + Exit */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Level buttons */}
+            {(['มต้น', 'มปลาย'] as Level[]).map(lv => (
+              <button key={lv} onClick={() => setLevel(lv)}
+                className={`px-4 py-2.5 rounded-2xl font-black text-base transition-all ${level === lv ? 'bg-white text-teal-700 shadow-lg' : 'bg-white/20 text-white hover:bg-white/40'}`}>
+                {lv === 'มต้น' ? '🌱 ม.ต้น' : '🌸 ม.ปลาย'}
+              </button>
+            ))}
+            <div className="w-px h-8 bg-white/30 mx-1" />
+            {/* View buttons */}
             {VIEWS.map(v => (
               <button key={v} onClick={() => setView(v)}
                 className={`w-12 h-12 rounded-2xl text-2xl font-bold flex items-center justify-center transition-all ${view === v ? 'bg-white shadow-lg scale-110' : 'bg-white/20 hover:bg-white/40'}`}>
