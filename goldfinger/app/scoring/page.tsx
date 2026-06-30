@@ -191,6 +191,7 @@ export default function ScoringPage() {
   async function submitResult(e: React.FormEvent) {
     e.preventDefault()
     if (!scoreA || !scoreB) { alert('กรุณากรอกคะแนนทั้งสองฝั่ง'); return }
+    if (isNaN(Number(scoreA)) || isNaN(Number(scoreB))) { alert('คะแนนไม่ถูกต้อง'); return }
     // เตือนถ้าเสมอ
     if (Number(scoreA) === Number(scoreB)) {
       if (!confirm(`⚠️ คะแนนเท่ากัน ${scoreA} – ${scoreB} (เสมอ)\nยืนยันบันทึกผลเสมอหรือไม่?`)) return
@@ -223,7 +224,7 @@ export default function ScoringPage() {
   if (!authed) return <LoginScreen role="scoring" onLogin={login} />
 
   const subTable = tableNum && tableSide ? `${tableNum}${tableSide}` : ''
-  const submitLabel = subTable && lookupState === 'ok' ? `🚀 บันทึกผล โต๊ะ ${subTable}` : mode === 'playoff' ? '🚀 บันทึกรอบเพลย์ออฟ' : '🚀 บันทึกผลแมตช์'
+  const submitLabel = subTable && lookupResult ? `🚀 บันทึกผล โต๊ะ ${subTable}` : mode === 'playoff' ? '🚀 บันทึกรอบเพลย์ออฟ' : '🚀 บันทึกผลแมตช์'
 
   const sa = Number(scoreA), sb = Number(scoreB)
   const cap = mode === 'playoff' && pfRound === 'ชิงชนะเลิศ' ? GF_MAX_DIFF_FINAL : GF_MAX_DIFF
@@ -456,7 +457,7 @@ export default function ScoringPage() {
             </div>
           )}
 
-          <button type="submit" disabled={submitting || (mode === 'qualify' && lookupState !== 'ok')}
+          <button type="submit" disabled={submitting || (mode === 'qualify' && !lookupResult)}
             className="w-full py-3.5 rounded-2xl font-black text-base text-white shadow-lg transition-all active:scale-95 disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg,#0f766e,#2dd4bf)' }}>
             {submitting ? '⏳ กำลังบันทึก...' : submitLabel}

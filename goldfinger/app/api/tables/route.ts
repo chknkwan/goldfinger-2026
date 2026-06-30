@@ -69,7 +69,13 @@ export async function POST(req: NextRequest) {
       const tn = row.table_num
       if (!tableMap[tn]) tableMap[tn] = { table_num: tn, pairA: null, pairB: null, byeA: null, byeB: null }
       const t = tableMap[tn]
-      if (row.is_bye) { t.byeA = row.player1 as Player; continue }
+      if (row.is_bye) {
+        // โต๊ะทั้งโต๊ะ bye (1 คน) → sub_table ลงท้าย A → byeA
+        // โต๊ะ 3 คน (1 คู่ + bye ฝั่ง B) → sub_table ลงท้าย B → byeB
+        if (row.sub_table.endsWith('B')) t.byeB = row.player1 as Player
+        else t.byeA = row.player1 as Player
+        continue
+      }
       if (row.sub_table.endsWith('A')) { t.pairA = { p1: row.player1 as Player, p2: row.player2 as Player } }
       else { t.pairB = { p1: row.player1 as Player, p2: row.player2 as Player } }
     }
