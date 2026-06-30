@@ -16,14 +16,17 @@ export async function POST(req: NextRequest) {
   const { action, level } = body
 
   if (action === 'semi') {
-    // ตรวจครบ 4 เกม
-    for (let g = 1; g <= 4; g++) {
-      const { data: ta } = await supabase.from('table_assignments').select('sub_table, is_bye').eq('level', level).eq('game', g)
-      const { data: scored } = await supabase.from('games').select('sub_table, score1, score2').eq('level', level).eq('game', g)
+    // ตรวจว่าทุกเกมที่จัดโต๊ะแล้วกรอกผลครบ (รองรับจำนวนเกมมากกว่า 4)
+    const { data: allTA } = await supabase.from('table_assignments').select('game, sub_table, is_bye').eq('level', level)
+    const { data: allScored } = await supabase.from('games').select('game, sub_table, score1, score2').eq('level', level)
+    const gameList = [...new Set((allTA || []).map((t: { game: number }) => t.game))].sort((a, b) => a - b)
+    if (gameList.length === 0) return NextResponse.json({ error: 'ยังไม่ได้จัดโต๊ะ' }, { status: 400 })
+    for (const g of gameList) {
       const scoredMap: Record<string, { score1: number | null; score2: number | null }> = {}
-      ;(scored || []).forEach((r: { sub_table: string; score1: number | null; score2: number | null }) => { scoredMap[r.sub_table] = r })
-      const missing = (ta || [])
-        .filter((t: { sub_table: string; is_bye: boolean }) => !t.is_bye)
+      ;(allScored || []).filter((r: { game: number }) => r.game === g)
+        .forEach((r: { sub_table: string; score1: number | null; score2: number | null }) => { scoredMap[r.sub_table] = r })
+      const missing = (allTA || [])
+        .filter((t: { game: number; is_bye: boolean }) => t.game === g && !t.is_bye)
         .filter((t: { sub_table: string }) => { const s = scoredMap[t.sub_table]; return !s || s.score1 === null || s.score2 === null })
       if (missing.length) return NextResponse.json({ error: `เกม ${g} ยังกรอกไม่ครบ` }, { status: 400 })
     }

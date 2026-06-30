@@ -116,6 +116,15 @@ export default function AdminPage() {
   useEffect(() => { if (showPlayers) loadAllPlayers() }, [showPlayers])
 
   async function generateTables(game: number) {
+    // ป้องกันการจัดโต๊ะซ้ำทับเกมที่กรอกผลไปแล้ว — คู่ในตารางจะไม่ตรงกับผลที่บันทึกไว้
+    const hasTable = !!(tables[game] && tables[game].length > 0)
+    if (hasTable) {
+      const { scored } = getGameProgress(game)
+      const warn = scored > 0
+        ? `⚠️ เกม ${game} มีผลที่กรอกไว้แล้ว ${scored} โต๊ะ\nการจัดโต๊ะใหม่จะสุ่ม/จับคู่ใหม่ ทำให้คู่ในตารางไม่ตรงกับคะแนนที่บันทึกไว้ และอันดับอาจคลาดเคลื่อน\n\nยืนยันจัดโต๊ะเกม ${game} ใหม่หรือไม่?`
+        : `เกม ${game} จัดโต๊ะไว้แล้ว — ยืนยันจัดใหม่ (สุ่ม/จับคู่ใหม่) หรือไม่?`
+      if (!confirm(warn)) return
+    }
     setLoading(true); setLoadingGame(game); setStatus(null)
     const gibsonNumbers = game === totalGames && gibsonInput.trim()
       ? gibsonInput.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n))
@@ -128,6 +137,9 @@ export default function AdminPage() {
   }
 
   async function generateSemi() {
+    // ป้องกันการสร้างคู่ทับผลรองชนะเลิศที่กรอกไว้แล้ว
+    const scoredSemi = playoffs.some(p => p.round === 'รองชนะเลิศ' && (p.score1 !== null || p.score2 !== null))
+    if (scoredSemi && !confirm('⚠️ มีผลรองชนะเลิศที่กรอกไว้แล้ว — การสร้างคู่ใหม่จะลบคะแนนเดิมทั้งหมด\nยืนยันหรือไม่?')) return
     setLoading(true); setStatus(null)
     const res = await fetch('/api/playoffs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'semi', level }) })
     const data = await res.json()
@@ -137,6 +149,9 @@ export default function AdminPage() {
   }
 
   async function generateFinal() {
+    // ป้องกันการสร้างคู่ทับผลชิงชนะเลิศที่กรอกไว้แล้ว
+    const scoredFinal = playoffs.some(p => p.round === 'ชิงชนะเลิศ' && (p.score1 !== null || p.score2 !== null))
+    if (scoredFinal && !confirm('⚠️ มีผลชิงชนะเลิศที่กรอกไว้แล้ว — การสร้างคู่ใหม่จะลบคะแนนเดิม\nยืนยันหรือไม่?')) return
     setLoading(true); setStatus(null)
     const res = await fetch('/api/playoffs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'final', level }) })
     const data = await res.json()
