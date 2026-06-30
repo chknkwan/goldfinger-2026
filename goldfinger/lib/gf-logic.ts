@@ -263,25 +263,27 @@ export function generateSwissWithGibson(standings: Standing[], gibsonIds: Set<nu
   const gibson = swissOrder.filter(p => gibsonIds.has(p.id))
   const normal = swissOrder.filter(p => !gibsonIds.has(p.id))
 
-  // วาง Gibson player คนละโต๊ะ: ตำแหน่ง 0, 4, 8, ...
-  const result: Player[] = []
-  let gi = 0, ni = 0
-  const tableCount = Math.ceil(swissOrder.length / 4)
-
-  for (let t = 0; t < tableCount; t++) {
-    const slots = Math.min(4, swissOrder.length - t * 4)
-    if (gi < gibson.length) {
-      result.push(gibson[gi++])
-      for (let s = 1; s < slots && ni < normal.length; s++) result.push(normal[ni++])
-    } else {
-      for (let s = 0; s < slots && ni < normal.length; s++) result.push(normal[ni++])
-    }
+  // splitIntoTables จับคู่ตามตำแหน่งติดกัน: (0,1)=คู่ A, (2,3)=คู่ B, (4,5)=โต๊ะถัดไป...
+  // วาง Gibson ไว้ตำแหน่ง "หัวคู่" (i%4===0 หรือ i%4===2) เพื่อให้คู่ของเขาเป็น normal เสมอ
+  // → Gibson สองคนจะไม่อยู่คู่เดียวกัน (จนกว่าจะ gibson เกินครึ่งสนามซึ่งเลี่ยงไม่ได้)
+  const total = swissOrder.length
+  const result: (Player | undefined)[] = new Array(total)
+  const prefPos: number[] = []   // หัวคู่
+  const fillPos: number[] = []   // ตำแหน่งคู่ของหัวคู่
+  for (let i = 0; i < total; i++) {
+    if (i % 4 === 0 || i % 4 === 2) prefPos.push(i)
+    else fillPos.push(i)
   }
-  // เติมที่เหลือ (ถ้ามี gibson มากกว่าจำนวนโต๊ะ)
-  while (gi < gibson.length) result.push(gibson[gi++])
-  while (ni < normal.length) result.push(normal[ni++])
 
-  return splitIntoTables(result)
+  let gi = 0, ni = 0
+  for (const pos of prefPos) { if (gi < gibson.length) result[pos] = gibson[gi++] }
+  for (const pos of fillPos) { if (ni < normal.length) result[pos] = normal[ni++] }
+  // เติมช่องที่ยังว่างด้วยที่เหลือ (normal ก่อน แล้วค่อย gibson ที่ล้น)
+  const leftovers = [...normal.slice(ni), ...gibson.slice(gi)]
+  let li = 0
+  for (let i = 0; i < total; i++) { if (result[i] === undefined) result[i] = leftovers[li++] }
+
+  return splitIntoTables(result as Player[])
 }
 
 // ============================================================
