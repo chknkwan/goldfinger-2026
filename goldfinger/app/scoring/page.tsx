@@ -417,14 +417,14 @@ export default function ScoringPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-bold text-teal-700 mb-1 text-center truncate">{nameA || 'ผู้เล่น A'}</label>
-              <input ref={scoreARef} value={scoreA} onChange={e => setScoreA(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="0" type="text" inputMode="numeric" pattern="[0-9]*"
+              <input ref={scoreARef} value={scoreA} onChange={e => setScoreA(e.target.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, ''))}
+                placeholder="0" type="text" inputMode="numeric" pattern="-?[0-9]*"
                 className="w-full px-3 py-4 border-2 border-teal-100 rounded-xl text-2xl font-black text-center bg-teal-50 focus:outline-none focus:border-teal-400" />
             </div>
             <div>
               <label className="block text-xs font-bold text-teal-700 mb-1 text-center truncate">{nameB || 'ผู้เล่น B'}</label>
-              <input value={scoreB} onChange={e => setScoreB(e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="0" type="text" inputMode="numeric" pattern="[0-9]*"
+              <input value={scoreB} onChange={e => setScoreB(e.target.value.replace(/[^0-9-]/g, '').replace(/(?!^)-/g, ''))}
+                placeholder="0" type="text" inputMode="numeric" pattern="-?[0-9]*"
                 className="w-full px-3 py-4 border-2 border-teal-100 rounded-xl text-2xl font-black text-center bg-teal-50 focus:outline-none focus:border-teal-400" />
             </div>
           </div>
