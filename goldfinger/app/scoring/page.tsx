@@ -309,7 +309,7 @@ export default function ScoringPage() {
                       return (
                         <button key={t.sub_table} type="button"
                           onClick={() => { setTableNum(num); setTableSide(side) }}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all active:scale-95 ${done ? 'bg-emerald-100 border-emerald-300 text-emerald-700' : 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'}`}>
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black border-2 transition-all active:scale-95 ${tableNum === num && tableSide === side ? 'bg-violet-600 border-violet-600 text-white shadow-md' : done ? 'bg-emerald-100 border-emerald-300 text-emerald-700' : 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100'}`}>
                           {t.sub_table}
                         </button>
                       )
