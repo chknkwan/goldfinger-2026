@@ -49,10 +49,8 @@ export default function DisplayPage() {
 
   useEffect(() => {
     if (projector) {
-      setAutoRotate(true)
       if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {})
     } else {
-      setAutoRotate(false)
       if (document.fullscreenElement) document.exitFullscreen().catch(() => {})
     }
   }, [projector])
@@ -390,7 +388,6 @@ export default function DisplayPage() {
               : <span className="text-red-200"><span className="inline-block w-2.5 h-2.5 rounded-full bg-red-300 mr-2"></span>ออฟไลน์</span>
             }
           </span>
-          <span className="text-white/60">🔄 สลับ view อัตโนมัติทุก 20 วินาที</span>
           <span className="text-white/60">{lastUpdate && `อัปเดต ${lastUpdate}`}</span>
         </div>
       </div>
